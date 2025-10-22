@@ -1,0 +1,336 @@
+body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f7f6;
+    color: #333;
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none;   /* Chrome/Safari/Opera */
+    -khtml-user-select: none;    /* Konqueror */
+    -moz-user-select: none;      /* Firefox */
+    -ms-user-select: none;       /* Internet Explorer/Edge */
+    user-select: none;           /* Non-prefixed version, currently
+                                    not supported by any browser */
+}
+
+.container {
+    max-width: 600px;
+    margin: 20px auto;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.tab-selector {
+    display: flex;
+    justify-content: space-around;
+    background-color: #e0e0e0;
+    border-bottom: 1px solid #ccc;
+}
+
+.tab-selector button {
+    flex-grow: 1;
+    padding: 15px 10px;
+    border: none;
+    background-color: transparent;
+    font-size: 16px;
+    font-weight: bold;
+    color: #555;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.tab-selector button.active {
+    background-color: #007aff;
+    color: #fff;
+    border-radius: 0;
+}
+
+.tab-content {
+    padding: 20px;
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+h2 {
+    color: #007aff;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.input-section label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #555;
+}
+
+.input-section input[type="date"],
+.input-section input[type="time"],
+.input-section input[type="text"],
+.input-section select,
+.input-section textarea,
+.input-section input[type="number"] {
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+.input-section textarea {
+    resize: vertical;
+}
+
+.duration-control {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.duration-control label {
+    margin-right: 10px;
+    margin-bottom: 0;
+    white-space: nowrap;
+}
+
+.duration-control input[type="number"] {
+    width: 80px;
+    margin-right: 10px;
+}
+
+.duration-control input[type="range"] {
+    flex-grow: 1;
+    margin-bottom: 0;
+}
+
+button {
+    background-color: #007aff;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 10px;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+#add-subject-btn {
+    background-color: #28a745;
+    margin-bottom: 15px;
+}
+
+#add-subject-btn:hover {
+    background-color: #218838;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+li {
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+li .session-details h4 {
+    margin: 0 0 5px 0;
+    color: #007aff;
+}
+
+li .session-details p {
+    margin: 0 0 3px 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.delete-btn, .delete-subject-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    width: auto;
+    margin-top: 0;
+}
+
+.delete-btn:hover, .delete-subject-btn:hover {
+    background-color: #c82333;
+}
+
+.message-text {
+    text-align: center;
+    color: #888;
+    margin-top: 20px;
+}
+
+.stats-summary {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #eaf6ff;
+    border-radius: 8px;
+}
+
+.stats-summary p {
+    margin: 5px 0;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.stats-summary span {
+    color: #007aff;
+    font-size: 20px;
+}
+
+canvas {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 20px;
+}
+
+#registered-subjects-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#color-settings div {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    gap: 10px;
+}
+
+#color-settings label {
+    flex-grow: 1;
+}
+
+#color-settings input[type="color"] {
+    width: 50px;
+    height: 30px;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+}
+
+/* Gacha Section */
+.gacha-summary {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #ffe0e0;
+    border-radius: 8px;
+}
+
+.gacha-summary p {
+    margin: 5px 0;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.gacha-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.gacha-buttons button {
+    flex-grow: 1;
+    background-color: #ff4500;
+}
+
+.gacha-buttons button:hover {
+    background-color: #cc3700;
+}
+
+#gacha-result-list li {
+    background-color: #fff3e0;
+    border-color: #ffcc80;
+}
+
+/* Characters Section */
+#owned-characters-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 15px;
+    text-align: center;
+}
+
+#owned-characters-list li {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    background-color: #e0f2f7;
+    border: 1px solid #b2ebf2;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #00796b;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+#owned-characters-list li.rarity-5 {
+    background-color: #fff9c4; /* Gold */
+    border-color: #ffeb3b;
+    color: #fbc02d;
+}
+
+#owned-characters-list li.rarity-4 {
+    background-color: #e3f2fd; /* Blue */
+    border-color: #90caf9;
+    color: #1976d2;
+}
+
+#owned-characters-list li.rarity-3 {
+    background-color: #f1f8e9; /* Green */
+    border-color: #c5e1a5;
+    color: #388e3c;
+}
+
+@media (max-width: 480px) {
+    .tab-selector button {
+        font-size: 14px;
+        padding: 12px 5px;
+    }
+    .container {
+        margin: 10px auto;
+        border-radius: 0;
+    }
+    .tab-content {
+        padding: 15px;
+    }
+    .input-section input,
+    .input-section select,
+    .input-section textarea {
+        width: calc(100% - 10px);
+    }
+    #owned-characters-list {
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    }
+}

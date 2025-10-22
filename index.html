@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>勉強時間管理PWA</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="/study-timer/icon-192x192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="勉強管理">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        
+        <div class="tab-selector">
+            <button id="record-tab" class="active">記録</button>
+            <button id="stats-tab">統計</button>
+            <button id="gacha-tab">ガチャ</button>
+            <button id="characters-tab">キャラ</button>
+            <button id="settings-tab">設定</button>
+        </div>
+
+        <div id="record-section" class="tab-content active">
+            <div class="input-section">
+                <label for="date-input">日付:</label>
+                <input type="date" id="date-input">
+                <label for="time-input">時刻:</label>
+                <input type="time" id="time-input">
+                
+                <label for="subject-select">科目名:</label>
+                <select id="subject-select">
+                    <option value="">科目を選択または入力</option>
+                </select>
+                <input type="text" id="subject-input" placeholder="新しい科目名" style="display: none;"> <!-- 初期は非表示 -->
+                <button id="add-subject-btn">科目追加</button>
+
+                <textarea id="detail-input" placeholder="詳細メモ (任意)" rows="3"></textarea>
+                <div class="duration-control">
+                    <label for="duration-manual">勉強時間 (分):</label>
+                    <input type="number" id="duration-manual" value="30" min="1">
+                    <input type="range" id="duration-slider" min="1" max="240" step="1" value="30">
+                </div>
+                <button id="add-session-btn">記録を追加</button>
+            </div>
+            <ul id="session-list"></ul>
+            <p id="no-records-message" class="message-text">まだ勉強記録がありません。</p>
+        </div>
+
+        <div id="stats-section" class="tab-content">
+            <h2>統計</h2>
+            <div class="stats-summary">
+                <p>総勉強時間: <span id="total-duration">0 時間</span></p>
+                <p>石: <span id="total-stones">0 個</span></p>
+            </div>
+            
+            <h3>科目別勉強時間</h3>
+            <canvas id="subjectChart"></canvas>
+            <ul id="subject-stats-list"></ul>
+
+            <h3>日別勉強時間</h3>
+            <canvas id="dailyChart"></canvas>
+            <p id="no-stats-message" class="message-text">まだ勉強記録がありません。</p>
+        </div>
+
+        <div id="gacha-section" class="tab-content">
+            <h2>ガチャ</h2>
+            <div class="gacha-summary">
+                <p>現在の石: <span id="current-stones">0 個</span></p>
+                <p>天井まで: <span id="pity-count">0 連</span></p>
+            </div>
+            <div class="gacha-buttons">
+                <button id="gacha-single-btn">1連 (石160個)</button>
+                <button id="gacha-multi-btn">10連 (石1600個)</button>
+            </div>
+            <div id="gacha-results">
+                <h3>結果</h3>
+                <ul id="gacha-result-list"></ul>
+            </div>
+        </div>
+
+        <div id="characters-section" class="tab-content">
+            <h2>キャラ</h2>
+            <ul id="owned-characters-list"></ul>
+            <p id="no-characters-message" class="message-text">まだキャラがいません。</p>
+        </div>
+
+        <div id="settings-section" class="tab-content">
+            <h2>設定</h2>
+            <h3>科目管理</h3>
+            <ul id="registered-subjects-list"></ul>
+            <p id="no-subjects-message" class="message-text">登録された科目はありません。</p>
+            
+            <h3>グラフ色設定</h3>
+            <div id="color-settings">
+                <p class="message-text">科目ごとのグラフ色をここで設定できます。</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+
