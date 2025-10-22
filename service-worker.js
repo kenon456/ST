@@ -1,19 +1,19 @@
 
 const CACHE_NAME = 'study-timer-pwa-v1';
 const urlsToCache = [
-    '/',
-    '/index.html',
-    '/style.css',
-    '/app.js',
-    '/manifest.json',
-    '/icons/icon-72x72.png',
-    '/icons/icon-96x96.png',
-    '/icons/icon-128x128.png',
-    '/icons/icon-144x144.png',
-    '/icons/icon-152x152.png',
-    '/icons/icon-192x192.png',
-    '/icons/icon-384x384.png',
-    '/icons/icon-512x512.png'
+    '/ST/',
+    '/ST/index.html',
+    '/ST/style.css',
+    '/ST/app.js',
+    '/ST/manifest.json',
+    '/ST/icons/icon-72x72.png',
+    '/ST/icons/icon-96x96.png',
+    '/ST/icons/icon-128x128.png',
+    '/ST/icons/icon-144x144.png',
+    '/ST/icons/icon-152x152.png',
+    '/ST/icons/icon-192x192.png',
+    '/ST/icons/icon-384x384.png',
+    '/ST/icons/icon-512x512.png'
 ];
 
 self.addEventListener('install', (event) => {

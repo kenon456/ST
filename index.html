@@ -6,7 +6,7 @@
     <title>勉強時間管理PWA</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="/study-timer/icon-192x192.png">
+    <link rel="apple-touch-icon" href="/ST/icon-192x192.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="勉強管理">
@@ -67,24 +67,18 @@
 
         <div id="gacha-section" class="tab-content">
             <h2>ガチャ</h2>
-            <div class="gacha-summary">
-                <p>現在の石: <span id="current-stones">0 個</span></p>
-                <p>天井まで: <span id="pity-count">0 連</span></p>
+            <p>現在の石: <span id="current-stones">0</span>個</p>
+            <div class="gacha-controls">
+                <button id="gacha-1-pull">1回引く (160石)</button>
+                <button id="gacha-10-pull">10回引く (1600石)</button>
             </div>
-            <div class="gacha-buttons">
-                <button id="gacha-single-btn">1連 (石160個)</button>
-                <button id="gacha-multi-btn">10連 (石1600個)</button>
-            </div>
-            <div id="gacha-results">
-                <h3>結果</h3>
-                <ul id="gacha-result-list"></ul>
-            </div>
+            <div id="gacha-results"></div>
         </div>
 
         <div id="characters-section" class="tab-content">
             <h2>キャラ</h2>
-            <ul id="owned-characters-list"></ul>
-            <p id="no-characters-message" class="message-text">まだキャラがいません。</p>
+            <div id="character-list"></div>
+            <p id="no-characters-message" class="message-text">まだキャラクターがいません。</p>
         </div>
 
         <div id="settings-section" class="tab-content">

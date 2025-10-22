@@ -1,54 +1,53 @@
+
 body {
-    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f4f7f6;
+    background-color: #f0f2f5;
     color: #333;
-    -webkit-touch-callout: none; /* iOS Safari */
-    -webkit-user-select: none;   /* Chrome/Safari/Opera */
-    -khtml-user-select: none;    /* Konqueror */
-    -moz-user-select: none;      /* Firefox */
-    -ms-user-select: none;       /* Internet Explorer/Edge */
-    user-select: none;           /* Non-prefixed version, currently
-                                    not supported by any browser */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 .container {
     max-width: 600px;
     margin: 20px auto;
     background-color: #fff;
+    padding: 20px;
     border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    text-align: center;
+    color: #007aff;
+    margin-bottom: 20px;
 }
 
 .tab-selector {
     display: flex;
-    justify-content: space-around;
-    background-color: #e0e0e0;
-    border-bottom: 1px solid #ccc;
+    justify-content: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #e0e0e0;
 }
 
 .tab-selector button {
-    flex-grow: 1;
-    padding: 15px 10px;
-    border: none;
     background-color: transparent;
+    border: none;
+    padding: 10px 20px;
     font-size: 16px;
-    font-weight: bold;
-    color: #555;
     cursor: pointer;
-    transition: background-color 0.3s, color 0.3s;
+    color: #888;
+    transition: color 0.3s, border-bottom 0.3s;
+    flex-grow: 1;
 }
 
 .tab-selector button.active {
-    background-color: #007aff;
-    color: #fff;
-    border-radius: 0;
+    color: #007aff;
+    border-bottom: 2px solid #007aff;
 }
 
 .tab-content {
-    padding: 20px;
     display: none;
 }
 
@@ -56,31 +55,30 @@ body {
     display: block;
 }
 
-h2 {
-    color: #007aff;
-    text-align: center;
+.input-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
     margin-bottom: 20px;
 }
 
 .input-section label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-    color: #555;
+    font-size: 14px;
+    color: #666;
+    margin-top: 5px;
 }
 
+.input-section input[type="text"],
+.input-section input[type="number"],
 .input-section input[type="date"],
 .input-section input[type="time"],
-.input-section input[type="text"],
-.input-section select,
 .input-section textarea,
-.input-section input[type="number"] {
-    width: calc(100% - 20px);
-    padding: 10px;
-    margin-bottom: 15px;
+.input-section select {
+    padding: 12px;
     border: 1px solid #ddd;
     border-radius: 8px;
     font-size: 16px;
+    width: calc(100% - 24px); /* Padding adjustment */
     box-sizing: border-box;
 }
 
@@ -91,58 +89,66 @@ h2 {
 .duration-control {
     display: flex;
     align-items: center;
-    margin-bottom: 15px;
+    gap: 10px;
 }
 
 .duration-control label {
-    margin-right: 10px;
-    margin-bottom: 0;
+    font-size: 16px;
     white-space: nowrap;
 }
 
 .duration-control input[type="number"] {
-    width: 80px;
-    margin-right: 10px;
+    width: 80px; /* Adjust width for number input */
+    text-align: center;
 }
 
 .duration-control input[type="range"] {
     flex-grow: 1;
-    margin-bottom: 0;
+    -webkit-appearance: none;
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 5px;
+    outline: none;
 }
 
-button {
+.duration-control input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #007aff;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 122, 255, 0.3);
+}
+
+button#add-session-btn,
+button#add-subject-btn {
     background-color: #007aff;
-    color: white;
+    color: #fff;
     padding: 12px 20px;
     border: none;
     border-radius: 8px;
-    cursor: pointer;
     font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
     width: 100%;
-    box-sizing: border-box;
     margin-top: 10px;
-    transition: background-color 0.3s;
 }
 
-button:hover {
-    background-color: #0056b3;
-}
-
-#add-subject-btn {
-    background-color: #28a745;
-    margin-bottom: 15px;
-}
-
-#add-subject-btn:hover {
-    background-color: #218838;
+button#add-session-btn:hover,
+button#add-subject-btn:hover {
+    background-color: #005bb5;
 }
 
 ul {
-    list-style-type: none;
+    list-style: none;
     padding: 0;
 }
 
-li {
+#session-list li,
+#subject-stats-list li,
+#registered-subjects-list li {
     background-color: #f9f9f9;
     border: 1px solid #eee;
     border-radius: 8px;
@@ -151,59 +157,82 @@ li {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    flex-wrap: wrap; /* Allow wrapping for smaller screens */
 }
 
-li .session-details h4 {
+#session-list li .session-details {
+    flex-grow: 1;
+}
+
+#session-list li .session-details h4 {
     margin: 0 0 5px 0;
-    color: #007aff;
+    color: #333;
 }
 
-li .session-details p {
-    margin: 0 0 3px 0;
+#session-list li .session-details p {
+    margin: 0;
     color: #666;
     font-size: 14px;
 }
 
-.delete-btn, .delete-subject-btn {
-    background-color: #dc3545;
-    color: white;
+#session-list li button.delete-btn,
+#registered-subjects-list li button.delete-subject-btn {
+    background-color: #ff3b30;
+    color: #fff;
     border: none;
-    padding: 8px 12px;
     border-radius: 5px;
+    padding: 8px 12px;
     cursor: pointer;
     font-size: 14px;
-    width: auto;
-    margin-top: 0;
+    margin-left: 10px;
+    flex-shrink: 0; /* Prevent button from shrinking */
 }
 
-.delete-btn:hover, .delete-subject-btn:hover {
-    background-color: #c82333;
+#session-list li button.delete-btn:hover,
+#registered-subjects-list li button.delete-subject-btn:hover {
+    background-color: #cc0000;
 }
 
 .message-text {
     text-align: center;
     color: #888;
+    font-style: italic;
     margin-top: 20px;
 }
 
 .stats-summary {
-    text-align: center;
+    display: flex;
+    justify-content: space-around;
     margin-bottom: 20px;
     padding: 10px;
-    background-color: #eaf6ff;
+    background-color: #f0f0f0;
     border-radius: 8px;
 }
 
 .stats-summary p {
-    margin: 5px 0;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: bold;
+    text-align: center;
+    margin: 0;
 }
 
 .stats-summary span {
     color: #007aff;
     font-size: 20px;
+}
+
+h2 {
+    text-align: center;
+    color: #007aff;
+    margin-bottom: 20px;
+}
+
+h3 {
+    color: #007aff;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 5px;
+    margin-top: 30px;
+    margin-bottom: 20px;
 }
 
 canvas {
@@ -212,10 +241,15 @@ canvas {
     margin-bottom: 20px;
 }
 
-#registered-subjects-list li {
+#subject-stats-list li {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    font-size: 16px;
+}
+
+#subject-stats-list li span:first-child {
+    font-weight: bold;
 }
 
 #color-settings div {
@@ -237,100 +271,163 @@ canvas {
     cursor: pointer;
 }
 
-/* Gacha Section */
-.gacha-summary {
-    text-align: center;
-    margin-bottom: 20px;
-    padding: 10px;
-    background-color: #ffe0e0;
-    border-radius: 8px;
-}
-
-.gacha-summary p {
-    margin: 5px 0;
-    font-size: 18px;
-    font-weight: bold;
-}
-
-.gacha-buttons {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-.gacha-buttons button {
-    flex-grow: 1;
-    background-color: #ff4500;
-}
-
-.gacha-buttons button:hover {
-    background-color: #cc3700;
-}
-
-#gacha-result-list li {
-    background-color: #fff3e0;
-    border-color: #ffcc80;
-}
-
-/* Characters Section */
-#owned-characters-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    gap: 15px;
-    text-align: center;
-}
-
-#owned-characters-list li {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 10px;
-    background-color: #e0f2f7;
-    border: 1px solid #b2ebf2;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: bold;
-    color: #00796b;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-}
-
-#owned-characters-list li.rarity-5 {
-    background-color: #fff9c4; /* Gold */
-    border-color: #ffeb3b;
-    color: #fbc02d;
-}
-
-#owned-characters-list li.rarity-4 {
-    background-color: #e3f2fd; /* Blue */
-    border-color: #90caf9;
-    color: #1976d2;
-}
-
-#owned-characters-list li.rarity-3 {
-    background-color: #f1f8e9; /* Green */
-    border-color: #c5e1a5;
-    color: #388e3c;
-}
-
-@media (max-width: 480px) {
-    .tab-selector button {
-        font-size: 14px;
-        padding: 12px 5px;
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #1c1c1e;
+        color: #f2f2f7;
     }
     .container {
-        margin: 10px auto;
-        border-radius: 0;
+        background-color: #2c2c2e;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
-    .tab-content {
-        padding: 15px;
+    h1,
+    h2,
+    h3 {
+        color: #0a84ff;
     }
-    .input-section input,
-    .input-section select,
-    .input-section textarea {
-        width: calc(100% - 10px);
+    .tab-selector button {
+        color: #98989d;
     }
-    #owned-characters-list {
-        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    .tab-selector button.active {
+        color: #0a84ff;
+        border-bottom-color: #0a84ff;
+    }
+    .input-section label {
+        color: #c7c7cc;
+    }
+    .input-section input[type="text"],
+    .input-section input[type="number"],
+    .input-section input[type="date"],
+    .input-section input[type="time"],
+    .input-section textarea,
+    .input-section select {
+        background-color: #3a3a3c;
+        border-color: #545458;
+        color: #f2f2f7;
+    }
+    .duration-control input[type="range"]::-webkit-slider-thumb {
+        background: #0a84ff;
+        box-shadow: 0 2px 4px rgba(10, 132, 255, 0.3);
+    }
+    button#add-session-btn,
+    button#add-subject-btn {
+        background-color: #0a84ff;
+    }
+    button#add-session-btn:hover,
+    button#add-subject-btn:hover {
+        background-color: #006ee6;
+    }
+    #session-list li,
+    #subject-stats-list li,
+    #registered-subjects-list li {
+        background-color: #3a3a3c;
+        border-color: #545458;
+    }
+    #session-list li .session-details h4 {
+        color: #f2f2f7;
+    }
+    #session-list li .session-details p {
+        color: #c7c7cc;
+    }
+    .message-text {
+        color: #98989d;
+    }
+    .stats-summary span {
+        color: #0a84ff;
+    }
+    .stats-summary {
+        background-color: #3a3a3c;
+    }
+    .tab-selector {
+        border-bottom-color: #3a3a3c;
+    }
+    h3 {
+        border-bottom-color: #3a3a3c;
     }
 }
+
+
+
+/* Gacha and Characters Section Styles */
+#gacha-section, #characters-section {
+    padding: 20px 0;
+}
+
+.gacha-controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    justify-content: center;
+}
+
+#gacha-1-pull, #gacha-10-pull {
+    background-color: #ff9500; /* Orange for gacha buttons */
+    color: #fff;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    flex-grow: 1;
+    max-width: 200px;
+}
+
+#gacha-1-pull:hover, #gacha-10-pull:hover {
+    background-color: #e08000;
+}
+
+#gacha-results {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f0f0f0;
+    border-radius: 8px;
+    min-height: 100px;
+    overflow-y: auto;
+}
+
+#gacha-results p {
+    margin: 5px 0;
+    font-size: 14px;
+    color: #333;
+}
+
+#character-list {
+    margin-top: 20px;
+}
+
+#character-list ul {
+    list-style: none;
+    padding: 0;
+}
+
+#character-list li {
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    padding: 15px;
+    font-size: 16px;
+}
+
+/* Dark mode adjustments for new sections */
+@media (prefers-color-scheme: dark) {
+    #gacha-1-pull, #gacha-10-pull {
+        background-color: #ff9f0a;
+    }
+    #gacha-1-pull:hover, #gacha-10-pull:hover {
+        background-color: #e69000;
+    }
+    #gacha-results {
+        background-color: #3a3a3c;
+    }
+    #gacha-results p {
+        color: #f2f2f7;
+    }
+    #character-list li {
+        background-color: #3a3a3c;
+        border-color: #545458;
+    }
+}
+

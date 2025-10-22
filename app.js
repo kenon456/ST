@@ -16,72 +16,48 @@ document.addEventListener("DOMContentLoaded", () => {
     const subjectStatsList = document.getElementById("subject-stats-list");
     const recordTabBtn = document.getElementById("record-tab");
     const statsTabBtn = document.getElementById("stats-tab");
-    const gachaTabBtn = document.getElementById("gacha-tab");
-    const charactersTabBtn = document.getElementById("characters-tab");
     const settingsTabBtn = document.getElementById("settings-tab");
     const recordSection = document.getElementById("record-section");
     const statsSection = document.getElementById("stats-section");
+    const settingsSection = document.getElementById("settings-section");
+    const gachaTabBtn = document.getElementById("gacha-tab");
+    const charactersTabBtn = document.getElementById("characters-tab");
     const gachaSection = document.getElementById("gacha-section");
     const charactersSection = document.getElementById("characters-section");
-    const settingsSection = document.getElementById("settings-section");
+    const currentStonesSpan = document.getElementById("current-stones");
+    const gacha1PullBtn = document.getElementById("gacha-1-pull");
+    const gacha10PullBtn = document.getElementById("gacha-10-pull");
+    const gachaResultsDiv = document.getElementById("gacha-results");
+    const characterListDiv = document.getElementById("character-list");
+    const noCharactersMessage = document.getElementById("no-characters-message");
     const noRecordsMessage = document.getElementById("no-records-message");
     const noStatsMessage = document.getElementById("no-stats-message");
     const registeredSubjectsList = document.getElementById("registered-subjects-list");
     const noSubjectsMessage = document.getElementById("no-subjects-message");
     const colorSettingsDiv = document.getElementById("color-settings");
 
-    const currentStonesSpan = document.getElementById("current-stones");
-    const pityCountSpan = document.getElementById("pity-count");
-    const gachaSingleBtn = document.getElementById("gacha-single-btn");
-    const gachaMultiBtn = document.getElementById("gacha-multi-btn");
-    const gachaResultList = document.getElementById("gacha-result-list");
-    const ownedCharactersList = document.getElementById("owned-characters-list");
-    const noCharactersMessage = document.getElementById("no-characters-message");
-
     let studySessions = [];
     let registeredSubjects = [];
     let subjectColors = {};
-    let totalStones = 0;
-    let gachaPityCounter = 0; // 天井カウンター
-    let lastGachaRarity = 0; // 最後に引いたレア度 (4 or 5)
-    let gachaCountSinceLastHighRarity = 0; // 最後に星4/5を引いてからのガチャ回数
-    let ownedCharacters = {}; // 獲得済みキャラ {name: {rarity: 5, count: 1}}
-
     let subjectChartInstance = null;
     let dailyChartInstance = null;
+    let gachaHistory = [];
+    let acquiredCharacters = [];
+    let consecutivePullsWithoutSSR = 0; // 天井システム用: SSRが出なかった連続回数
+    let gachaPullCount = 0; // 天井システム用: ガチャ総回数
 
-    // ガチャ排出リスト
+    // ガチャアイテム定義
     const gachaItems = {
-        rarity5: [
-            "ウェンティ", "ジン", "ディルック", "クレー", "アルベド", "モナ", "鍾離", "胡桃", "魈", "甘雨",
-            "刻晴", "申鶴", "夜蘭", "七七", "白朮", "閑雲", "タルタリヤ", "雷電将軍", "八重神子", "神里綾華",
-            "神里綾人", "楓原万葉", "宵宮", "珊瑚宮心海", "荒瀧一斗", "夢見月瑞希", "千織", "ナヒーダ", "ニィロウ",
-            "ティナリ", "セノ", "アルハイゼン", "ディシア", "放浪者", "フリーナ", "ヌヴィレット", "リネ", "ナヴィア",
-            "クロリンデ", "リオセスリ", "シグウィン", "アルレッキーノ", "エミリエ", "エスコフィエ", "スカーク",
-            "ムアラニ", "キィニチ", "シロネン", "チャスカ", "シトラリ", "マーヴィカ", "ヴァレサ", "イネファ",
-            "ラウマ", "フリンズ", "ネフェル"
-        ],
-        rarity4: [
-            "アンバー", "ガイア", "リサ", "バーバラ", "ロサリア", "レザー", "ベネット", "ノエル", "スクロース",
-            "エウルア", "ミカ", "フィッシュル", "ディオナ", "凝光", "香菱", "北斗", "煙緋", "ヨォーヨ", "行秋",
-            "重雲", "雲菫", "辛炎", "嘉明", "トーマ", "早柚", "九条沙羅", "鹿野院平蔵", "ゴロー", "久岐忍",
-            "綺良々", "コレイ", "キャンディス", "ドリー", "カーヴェ", "レイラ", "ファルザン", "リネット",
-            "シャルロット", "フレミネ", "シュヴルーズ", "カチーナ", "オロルン", "藍硯", "イアンサ", "イファ",
-            "ダリア", "アイノ"
-        ],
-        rarity3: [
-            "素材<炎>", "素材<水>", "素材<雷>", "素材<草>", "素材<氷>", "素材<岩>"
-        ]
+        'star5': Array.from({ length: 60 }, (_, i) => ({ name: `星5キャラ${i + 1}`, rarity: 5, type: 'character' })),
+        'star4': Array.from({ length: 48 }, (_, i) => ({ name: `星4キャラ${i + 1}`, rarity: 4, type: 'character' })),
+        'star3': Array.from({ length: 6 }, (_, i) => ({ name: `星3素材${i + 1}`, rarity: 3, type: 'material' }))
     };
 
     // 初期化
     loadData();
     renderSubjects();
     renderSessions();
-    renderStats();
     renderSubjectColorSettings();
-    renderGachaState();
-    renderOwnedCharacters();
     setCurrentDateTime(); // 初期表示時に現在日時を設定
 
     // イベントリスナー
@@ -99,7 +75,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     addSessionBtn.addEventListener("click", addSession);
     addSubjectBtn.addEventListener("click", addSubject);
-
+    
+    // 科目選択が変更されたとき
     subjectSelect.addEventListener("change", () => {
         if (subjectSelect.value === "") {
             subjectInput.style.display = "block"; // 「科目を選択または入力」が選ばれたら入力フィールドを表示
@@ -110,20 +87,39 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    recordTabBtn.addEventListener("click", () => switchTab("record"));
-    statsTabBtn.addEventListener("click", () => switchTab("stats"));
-    gachaTabBtn.addEventListener("click", () => switchTab("gacha"));
-    charactersTabBtn.addEventListener("click", () => switchTab("characters"));
-    settingsTabBtn.addEventListener("click", () => switchTab("settings"));
+    recordTabBtn.addEventListener("click", () => {
+        switchTab("record");
+    });
 
-    gachaSingleBtn.addEventListener("click", () => performGacha(1));
-    gachaMultiBtn.addEventListener("click", () => performGacha(10));
+    statsTabBtn.addEventListener("click", () => {
+        switchTab("stats");
+    });
+
+    settingsTabBtn.addEventListener("click", () => {
+        switchTab("settings");
+    });
+
+    gachaTabBtn.addEventListener("click", () => {
+        switchTab("gacha");
+    });
+
+    charactersTabBtn.addEventListener("click", () => {
+        switchTab("characters");
+    });
 
     // 関数定義
     function switchTab(tab) {
         // すべてのタブボタンとセクションを非アクティブ化
-        document.querySelectorAll(".tab-selector button").forEach(btn => btn.classList.remove("active"));
-        document.querySelectorAll(".tab-content").forEach(sec => sec.classList.remove("active"));
+        recordTabBtn.classList.remove("active");
+        statsTabBtn.classList.remove("active");
+        settingsTabBtn.classList.remove("active");
+        gachaTabBtn.classList.remove("active");
+        charactersTabBtn.classList.remove("active");
+        recordSection.classList.remove("active");
+        statsSection.classList.remove("active");
+        settingsSection.classList.remove("active");
+        gachaSection.classList.remove("active");
+        charactersSection.classList.remove("active");
 
         // 選択されたタブをアクティブ化
         if (tab === "record") {
@@ -134,19 +130,19 @@ document.addEventListener("DOMContentLoaded", () => {
             statsTabBtn.classList.add("active");
             statsSection.classList.add("active");
             renderStats(); // 統計タブ表示時に再描画
-        } else if (tab === "gacha") {
-            gachaTabBtn.classList.add("active");
-            gachaSection.classList.add("active");
-            renderGachaState();
-        } else if (tab === "characters") {
-            charactersTabBtn.classList.add("active");
-            charactersSection.classList.add("active");
-            renderOwnedCharacters();
         } else if (tab === "settings") {
             settingsTabBtn.classList.add("active");
             settingsSection.classList.add("active");
             renderSubjects(); // 設定タブ表示時に科目リストを再描画
             renderSubjectColorSettings(); // 設定タブ表示時に色設定を再描画
+        } else if (tab === "gacha") {
+            gachaTabBtn.classList.add("active");
+            gachaSection.classList.add("active");
+            updateGachaStoneCount();
+        } else if (tab === "characters") {
+            charactersTabBtn.classList.add("active");
+            charactersSection.classList.add("active");
+            renderCharacters();
         }
     }
 
@@ -158,13 +154,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const hours = now.getHours().toString().padStart(2, '0');
         const minutes = now.getMinutes().toString().padStart(2, '0');
 
-        // 日付と時刻の入力フィールドが空の場合のみ現在日時を設定
-        if (!dateInput.value) {
-            dateInput.value = `${year}-${month}-${day}`;
-        }
-        if (!timeInput.value) {
-            timeInput.value = `${hours}:${minutes}`;
-        }
+        dateInput.value = `${year}-${month}-${day}`;
+        timeInput.value = `${hours}:${minutes}`;
     }
 
     function addSubject() {
@@ -202,6 +193,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function addSession() {
+        const now = new Date(); // add this line to define 'now'
         let subject = subjectSelect.value;
         // 科目選択が空で、かつ入力フィールドに値がある場合、入力フィールドの値を採用
         if (subject === "" && subjectInput.value.trim() !== "") {
@@ -221,18 +213,12 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // 日付または時刻が空の場合、現在の日時で補完
-        const now = new Date();
+        // 日付または時刻が空の場合、記録追加ボタン押下時刻を自動設定
         if (!selectedDate) {
-            const year = now.getFullYear();
-            const month = (now.getMonth() + 1).toString().padStart(2, '0');
-            const day = now.getDate().toString().padStart(2, '0');
-            selectedDate = `${year}-${month}-${day}`;
+            selectedDate = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
         }
         if (!selectedTime) {
-            const hours = now.getHours().toString().padStart(2, '0');
-            const minutes = now.getMinutes().toString().padStart(2, '0');
-            selectedTime = `${hours}:${minutes}`;
+            selectedTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
         }
 
         const sessionDateTime = new Date(`${selectedDate}T${selectedTime}:00`);
@@ -270,12 +256,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         studySessions.push(newSession);
         studySessions.sort((a, b) => new Date(b.startTime) - new Date(a.startTime)); // 最新の記録が上に来るようにソート
-        totalStones += newSession.stones;
         saveData();
         renderSubjects();
         renderSessions();
         renderStats();
-        renderGachaState();
 
         // 入力フィールドをリセット
         subjectInput.value = "";
@@ -284,20 +268,15 @@ document.addEventListener("DOMContentLoaded", () => {
         detailInput.value = "";
         durationManualInput.value = "30";
         durationSlider.value = "30";
-        setCurrentDateTime(); // 現在日時を再設定
+        // setCurrentDateTime(); // 現在日時を再設定 (記録追加後に自動リセットしない)
     }
 
     function deleteSession(id) {
         if (confirm("この勉強記録を削除してもよろしいですか？")) {
-            const sessionToDelete = studySessions.find(session => session.id === id);
-            if (sessionToDelete) {
-                totalStones -= sessionToDelete.stones;
-            }
             studySessions = studySessions.filter((session) => session.id !== id);
             saveData();
             renderSessions();
             renderStats();
-            renderGachaState();
         }
     }
 
@@ -314,25 +293,21 @@ document.addEventListener("DOMContentLoaded", () => {
         if (savedColors) {
             subjectColors = JSON.parse(savedColors);
         }
-        const savedTotalStones = localStorage.getItem("totalStones");
-        if (savedTotalStones) {
-            totalStones = parseInt(savedTotalStones);
+        const savedGachaHistory = localStorage.getItem("gachaHistory");
+        if (savedGachaHistory) {
+            gachaHistory = JSON.parse(savedGachaHistory);
         }
-        const savedGachaPityCounter = localStorage.getItem("gachaPityCounter");
-        if (savedGachaPityCounter) {
-            gachaPityCounter = parseInt(savedGachaPityCounter);
+        const savedAcquiredCharacters = localStorage.getItem("acquiredCharacters");
+        if (savedAcquiredCharacters) {
+            acquiredCharacters = JSON.parse(savedAcquiredCharacters);
         }
-        const savedLastGachaRarity = localStorage.getItem("lastGachaRarity");
-        if (savedLastGachaRarity) {
-            lastGachaRarity = parseInt(savedLastGachaRarity);
+        const savedGachaPullCount = localStorage.getItem("gachaPullCount");
+        if (savedGachaPullCount) {
+            gachaPullCount = parseInt(savedGachaPullCount);
         }
-        const savedGachaCountSinceLastHighRarity = localStorage.getItem("gachaCountSinceLastHighRarity");
-        if (savedGachaCountSinceLastHighRarity) {
-            gachaCountSinceLastHighRarity = parseInt(savedGachaCountSinceLastHighRarity);
-        }
-        const savedOwnedCharacters = localStorage.getItem("ownedCharacters");
-        if (savedOwnedCharacters) {
-            ownedCharacters = JSON.parse(savedOwnedCharacters);
+        const savedConsecutivePullsWithoutSSR = localStorage.getItem("consecutivePullsWithoutSSR");
+        if (savedConsecutivePullsWithoutSSR) {
+            consecutivePullsWithoutSSR = parseInt(savedConsecutivePullsWithoutSSR);
         }
     }
 
@@ -340,11 +315,10 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.setItem("studySessions", JSON.stringify(studySessions));
         localStorage.setItem("registeredSubjects", JSON.stringify(registeredSubjects));
         localStorage.setItem("subjectColors", JSON.stringify(subjectColors));
-        localStorage.setItem("totalStones", totalStones.toString());
-        localStorage.setItem("gachaPityCounter", gachaPityCounter.toString());
-        localStorage.setItem("lastGachaRarity", lastGachaRarity.toString());
-        localStorage.setItem("gachaCountSinceLastHighRarity", gachaCountSinceLastHighRarity.toString());
-        localStorage.setItem("ownedCharacters", JSON.stringify(ownedCharacters));
+        localStorage.setItem("gachaHistory", JSON.stringify(gachaHistory));
+        localStorage.setItem("acquiredCharacters", JSON.stringify(acquiredCharacters));
+        localStorage.setItem("gachaPullCount", gachaPullCount.toString());
+        localStorage.setItem("consecutivePullsWithoutSSR", consecutivePullsWithoutSSR.toString());
     }
 
     function renderSubjects() {
@@ -401,7 +375,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         ${session.detail ? `<p>詳細: ${session.detail}</p>` : ''}
                         <p>時間: ${session.duration} 分</p>
                         <p>開始: ${startTime.toLocaleString('ja-JP')}</p>
-                        <p>石: ${session.stones} 個</p>
+                        <p>獲得石: ${session.stones} 個</p>
                     </div>
                     <button class="delete-btn" data-id="${session.id}">削除</button>
                 `;
@@ -431,6 +405,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const totalDurationMinutes = studySessions.reduce((sum, session) => sum + session.duration, 0);
         totalDurationSpan.textContent = `${(totalDurationMinutes / 60).toFixed(1)} 時間`;
+        const totalStones = studySessions.reduce((sum, session) => sum + session.stones, 0);
         totalStonesSpan.textContent = `${totalStones} 個`;
 
         // 科目別統計
@@ -563,7 +538,151 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    function renderSubjectColorSettings() {
+        function updateGachaStoneCount() {
+        const totalStones = studySessions.reduce((sum, session) => sum + session.stones, 0);
+        const spentStones = gachaHistory.reduce((sum, result) => sum + result.cost, 0);
+        const currentStones = totalStones - spentStones;
+        currentStonesSpan.textContent = currentStones;
+    }
+
+    function renderCharacters() {
+        characterListDiv.innerHTML = ""; // 既存のリストをクリア
+        if (acquiredCharacters.length === 0) {
+            noCharactersMessage.style.display = "block";
+            return;
+        }
+        noCharactersMessage.style.display = "none";
+
+        // レア度別にグループ化
+        const groupedCharacters = acquiredCharacters.reduce((acc, char) => {
+            if (!acc[char.rarity]) {
+                acc[char.rarity] = [];
+            }
+            acc[char.rarity].push(char);
+            return acc;
+        }, {});
+
+        // レア度順にソートして表示
+        Object.keys(groupedCharacters).sort((a, b) => b - a).forEach(rarity => {
+            const rarityHeader = document.createElement("h3");
+            rarityHeader.textContent = `星${rarity} キャラクター`;
+            characterListDiv.appendChild(rarityHeader);
+
+            const ul = document.createElement("ul");
+            groupedCharacters[rarity].forEach(char => {
+                const li = document.createElement("li");
+                li.textContent = char.name;
+                ul.appendChild(li);
+            });
+            characterListDiv.appendChild(ul);
+        });
+    }
+
+    gacha1PullBtn.addEventListener("click", () => pullGacha(1));
+    gacha10PullBtn.addEventListener("click", () => pullGacha(10));
+
+    function pullGacha(count) {
+        const cost = 160 * count;
+        const totalStones = studySessions.reduce((sum, session) => sum + session.stones, 0);
+        const spentStones = gachaHistory.reduce((sum, result) => sum + result.cost, 0);
+        const currentStones = totalStones - spentStones;
+
+        if (currentStones < cost) {
+            alert(`石が足りません！ 現在の石: ${currentStones}個, 必要な石: ${cost}個`);
+            return;
+        }
+
+        if (!confirm(`${count}回ガチャを引きますか？ (${cost}石消費)`)) {
+            return;
+        }
+
+        let results = [];
+        let ssrPulledIn10 = false; // 10連天井用
+        let srPulledIn10 = false; // 10連天井用
+
+        for (let i = 0; i < count; i++) {
+            gachaPullCount++;
+            let item = drawGachaItem();
+            results.push(item);
+            gachaHistory.push({ item: item, cost: 160, timestamp: new Date().toISOString() });
+            if (item.type === 'character') {
+                acquiredCharacters.push(item);
+            }
+
+            if (item.rarity === 5) {
+                consecutivePullsWithoutSSR = 0;
+                ssrPulledIn10 = true;
+            } else if (item.rarity === 4) {
+                consecutivePullsWithoutSSR++;
+                srPulledIn10 = true;
+            } else {
+                consecutivePullsWithoutSSR++;
+            }
+        }
+
+        // 10連天井の判定とリセット
+        if (count === 10 && !ssrPulledIn10 && !srPulledIn10) {
+            // 10連でSSRもSRも出なかった場合、次の10連はSR以上確定
+            // このロジックは、次の10連時に適用されるため、ここではフラグを立てるのみ
+            // 実際の実装では、次の10連を引く際にこのフラグをチェックして確率を調整する
+            // 10連でSSRもSRも出なかった場合、最後のアイテムを星4/星5に置き換える
+            const lastItemIndex = results.length - 1;
+            let guaranteedItem = drawGuaranteedSRorSSRItem(); // 星4/星5確定
+            // 置き換えられたアイテムが星5の場合、consecutivePullsWithoutSSRをリセット
+            results[lastItemIndex] = guaranteedItem;
+            gachaHistory[gachaHistory.length - 1].item = guaranteedItem;
+            consecutivePullsWithoutSSR = 0; // 天井アイテムが出たのでリセット
+        }
+
+        saveData();
+        updateGachaStoneCount();
+        displayGachaResults(results);
+    }
+
+    function drawGachaItem() {
+        let star5Rate = 0.006;
+        let star4Rate = 0.06;
+        let star3Rate = 1 - star5Rate - star4Rate;
+
+        // 天井システム: 75連目以降、1連ごとに星5確率6%上昇
+        if (gachaPullCount >= 75) {
+            const bonusRate = Math.min(0.994, (gachaPullCount - 74) * 0.06); // 最大99.4%まで
+            star5Rate = star5Rate + bonusRate;
+            star4Rate = Math.max(0, star4Rate - bonusRate); // 星4確率から減らす
+            star3Rate = Math.max(0, 1 - star5Rate - star4Rate); // 星3確率も調整
+        }
+
+
+
+        const rand = Math.random();
+        if (rand < star5Rate) {
+            return gachaItems.star5[Math.floor(Math.random() * gachaItems.star5.length)];
+        } else if (rand < star5Rate + star4Rate) {
+            return gachaItems.star4[Math.floor(Math.random() * gachaItems.star4.length)];
+        } else {
+            return gachaItems.star3[Math.floor(Math.random() * gachaItems.star3.length)];
+        }
+    }
+
+    function drawGuaranteedSRorSSRItem() {
+        const rand = Math.random();
+        if (rand < 0.006) { // 0.6%で星5
+            return gachaItems.star5[Math.floor(Math.random() * gachaItems.star5.length)];
+        } else { // 99.4%で星4
+            return gachaItems.star4[Math.floor(Math.random() * gachaItems.star4.length)];
+        }
+    }
+
+    function displayGachaResults(results) {
+        gachaResultsDiv.innerHTML = ""; // Clear previous results
+        results.forEach(item => {
+            const p = document.createElement("p");
+            p.textContent = `レア度: ${item.rarity} (${item.type}), 名前: ${item.name}`;
+            gachaResultsDiv.appendChild(p);
+        });
+    }
+
+function renderSubjectColorSettings() {
         colorSettingsDiv.innerHTML = ''; // コンテンツをクリア
         if (registeredSubjects.length === 0) {
             const p = document.createElement('p');
@@ -601,120 +720,6 @@ document.addEventListener("DOMContentLoaded", () => {
             color += letters[Math.floor(Math.random() * 16)];
         }
         return color;
-    }
-
-    function renderGachaState() {
-        currentStonesSpan.textContent = `${totalStones} 個`;
-        pityCountSpan.textContent = `${gachaPityCounter} 連`;
-        gachaSingleBtn.disabled = totalStones < 160;
-        gachaMultiBtn.disabled = totalStones < 1600;
-    }
-
-    function performGacha(count) {
-        const cost = 160 * count;
-        if (totalStones < cost) {
-            alert("石が足りません。");
-            return;
-        }
-
-        if (!confirm(`${count}連ガチャを引きますか？ (石${cost}個消費)`)) {
-            return;
-        }
-
-        totalStones -= cost;
-        gachaResultList.innerHTML = '';
-        let results = [];
-
-        for (let i = 0; i < count; i++) {
-            gachaPityCounter++;
-            gachaCountSinceLastHighRarity++;
-
-            let drawRarity = 3;
-            let rarity5Rate = 0.006; // 0.6%
-            let rarity4Rate = 0.06;  // 6%
-
-            // 星5天井ロジック
-            if (gachaPityCounter >= 75) {
-                rarity5Rate += (gachaPityCounter - 74) * 0.06; // 75連目から1連ごとに6%上昇
-            }
-            // 星4/5天井ロジック (10連で星4以上確定)
-            if (gachaCountSinceLastHighRarity === 10) {
-                // 10連目は星4以上確定
-                const tenPullRoll = Math.random();
-                if (tenPullRoll < 0.006) { // 0.6%で星5
-                    drawRarity = 5;
-                } else { // 残り99.4%で星4
-                    drawRarity = 4;
-                }
-            } else {
-                const roll = Math.random();
-                if (roll < rarity5Rate) {
-                    drawRarity = 5;
-                } else if (roll < rarity5Rate + rarity4Rate) {
-                    drawRarity = 4;
-                }
-            }
-
-            let item;
-            let rarityClass;
-            if (drawRarity === 5) {
-                item = gachaItems.rarity5[Math.floor(Math.random() * gachaItems.rarity5.length)];
-                rarityClass = 'rarity-5';
-                gachaPityCounter = 0; // 天井リセット
-                lastGachaRarity = 5;
-                gachaCountSinceLastHighRarity = 0;
-            } else if (drawRarity === 4) {
-                item = gachaItems.rarity4[Math.floor(Math.random() * gachaItems.rarity4.length)];
-                rarityClass = 'rarity-4';
-                lastGachaRarity = 4;
-                gachaCountSinceLastHighRarity = 0;
-            } else {
-                item = gachaItems.rarity3[Math.floor(Math.random() * gachaItems.rarity3.length)];
-                rarityClass = 'rarity-3';
-            }
-            results.push({ item, rarity: drawRarity, rarityClass });
-            addOwnedCharacter(item, drawRarity);
-        }
-
-        results.forEach(result => {
-            const li = document.createElement('li');
-            li.className = result.rarityClass;
-            li.textContent = `★${result.rarity} ${result.item}`;
-            gachaResultList.appendChild(li);
-        });
-
-        saveData();
-        renderGachaState();
-        renderOwnedCharacters();
-    }
-
-    function addOwnedCharacter(name, rarity) {
-        if (ownedCharacters[name]) {
-            ownedCharacters[name].count++;
-        } else {
-            ownedCharacters[name] = { rarity: rarity, count: 1 };
-        }
-    }
-
-    function renderOwnedCharacters() {
-        ownedCharactersList.innerHTML = '';
-        const sortedCharacters = Object.entries(ownedCharacters).sort(([, a], [, b]) => b.rarity - a.rarity);
-
-        if (sortedCharacters.length === 0) {
-            noCharactersMessage.style.display = 'block';
-        } else {
-            noCharactersMessage.style.display = 'none';
-            sortedCharacters.forEach(([name, data]) => {
-                const li = document.createElement('li');
-                li.className = `rarity-${data.rarity}`;
-                li.innerHTML = `
-                    <span>★${data.rarity}</span>
-                    <span>${name}</span>
-                    ${data.count > 1 ? `<span>x${data.count}</span>` : ''}
-                `;
-                ownedCharactersList.appendChild(li);
-            });
-        }
     }
 
     // 初期タブの表示
