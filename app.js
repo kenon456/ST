@@ -578,10 +578,10 @@ document.addEventListener("DOMContentLoaded", () => {
             const item = drawGachaItem(isGuaranteedSRorSSR, currentStar5Rate);
             results.push(item);
 
-            // 星5が出たら天井カウントをリセット
-            if (item.rarity === 5) {
+            // 星5または確定枠でSR以上が出たら天井カウントをリセット
+            if (item.rarity === 5 || (isGuaranteedSRorSSR && item.rarity >= 4)) {
                 consecutivePullsWithoutSSR = 0;
-            } else if (item.rarity < 5) { // 星5以外が出たらカウントアップ
+            } else { // それ以外の場合、星5以外が出たらカウントアップ
                 consecutivePullsWithoutSSR++;
             }
             
