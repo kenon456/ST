@@ -108,23 +108,21 @@ document.addEventListener("DOMContentLoaded", () => {
             document.querySelectorAll(".tab-content").forEach(sec => sec.classList.remove("active"));
 
         // 選択されたタブをアクティブ化
-        if (tab === "record") {
-            document.getElementById(`${tab}-tab`).classList.add("active");
-            document.getElementById(`${tab}-section`).classList.add("active");
+        document.getElementById(`${tab}-tab`).classList.add("active");
+        document.getElementById(`${tab}-section").classList.add("active");
 
-            if (tab === "record") {
-                setCurrentDateTime(); // 記録タブに戻った時に現在日時を設定
-                renderSubjects(); // 記録タブでも科目選択を更新
-            } else if (tab === "stats") {
-                renderStats(); // 統計タブ表示時に再描画
-            } else if (tab === "settings") {
-                renderSubjects(); // 設定タブ表示時に科目リストを再描画
-                renderSubjectColorSettings(); // 設定タブ表示時に色設定を再描画
-            } else if (tab === "gacha") {
-                updateGachaStoneCount();
-            } else if (tab === "characters") {
-                renderCharacters();
-            }
+        if (tab === "record") {
+            setCurrentDateTime(); // 記録タブに戻った時に現在日時を設定
+            renderSubjects(); // 記録タブでも科目選択を更新
+        } else if (tab === "stats") {
+            renderStats(); // 統計タブ表示時に再描画
+        } else if (tab === "settings") {
+            renderSubjects(); // 設定タブ表示時に科目リストを再描画
+            renderSubjectColorSettings(); // 設定タブ表示時に色設定を再描画
+        } else if (tab === "gacha") {
+            updateGachaStoneCount();
+        } else if (tab === "characters") {
+            renderCharacters();
         }
     }
 
