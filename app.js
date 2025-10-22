@@ -104,12 +104,12 @@ document.addEventListener("DOMContentLoaded", () => {
     // 関数定義
     function switchTab(tab) {
         // すべてのタブボタンとセクションを非アクティブ化
-            document.querySelectorAll(".tab-selector button").forEach(btn => btn.classList.remove("active"));
-            document.querySelectorAll(".tab-content").forEach(sec => sec.classList.remove("active"));
+        document.querySelectorAll(".tab-selector button").forEach(btn => btn.classList.remove("active"));
+        document.querySelectorAll(".tab-content").forEach(sec => sec.classList.remove("active"));
 
         // 選択されたタブをアクティブ化
         document.getElementById(`${tab}-tab`).classList.add("active");
-        document.getElementById(`${tab}-section").classList.add("active");
+        document.getElementById(`${tab}-section`).classList.add("active");
 
         if (tab === "record") {
             setCurrentDateTime(); // 記録タブに戻った時に現在日時を設定
@@ -127,7 +127,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function setCurrentDateTime() {
-        const now = new Date();
+        const now = new Date(); // now変数をここで定義
         const year = now.getFullYear();
         const month = (now.getMonth() + 1).toString().padStart(2, '0');
         const day = now.getDate().toString().padStart(2, '0');
