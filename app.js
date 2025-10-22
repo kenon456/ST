@@ -237,11 +237,13 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         studySessions.push(newSession);
+        gachaHistory.push({ type: 'stone_gain', amount: newSession.stones, sourceId: newSession.id, timestamp: new Date().toISOString() });
         studySessions.sort((a, b) => new Date(b.startTime) - new Date(a.startTime)); // 最新の記録が上に来るようにソート
         saveData();
         renderSubjects();
         renderSessions();
         renderStats();
+        updateGachaStoneCount();
 
         // 入力フィールドをリセット
         subjectSelect.value = "";
