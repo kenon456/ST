@@ -1,9 +1,8 @@
-
 document.addEventListener("DOMContentLoaded", () => {
     // UI要素の取得
     const subjectSelect = document.getElementById("subject-select");
-    const subjectInput = document.getElementById("subject-input");
-    const addSubjectBtn = document.getElementById("add-subject-btn");
+    const newSubjectInput = document.getElementById("new-subject-input"); // 設定タブの新しい科目入力フィールド
+    const addSubjectBtnSettings = document.getElementById("add-subject-btn"); // 設定タブの科目追加ボタン
     const detailInput = document.getElementById("detail-input");
     const durationManualInput = document.getElementById("duration-manual");
     const durationSlider = document.getElementById("duration-slider");
@@ -60,6 +59,9 @@ document.addEventListener("DOMContentLoaded", () => {
     renderSubjectColorSettings();
     setCurrentDateTime(); // 初期表示時に現在日時を設定
 
+    // 設定タブの科目追加ボタンにイベントリスナーを追加
+    addSubjectBtnSettings.addEventListener("click", addSubject);
+
     // イベントリスナー
     durationManualInput.addEventListener("input", () => {
         let value = parseInt(durationManualInput.value);
@@ -74,18 +76,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     addSessionBtn.addEventListener("click", addSession);
-    addSubjectBtn.addEventListener("click", addSubject);
+
     
     // 科目選択が変更されたとき
-    subjectSelect.addEventListener("change", () => {
-        if (subjectSelect.value === "") {
-            subjectInput.style.display = "block"; // 「科目を選択または入力」が選ばれたら入力フィールドを表示
-            subjectInput.focus();
-        } else {
-            subjectInput.style.display = "none"; // 既存の科目が選ばれたら入力フィールドを隠す
-            subjectInput.value = ""; // 入力フィールドの値をクリア
-        }
-    });
+
 
     recordTabBtn.addEventListener("click", () => {
         switchTab("record");
@@ -159,7 +153,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function addSubject() {
-        const newSubject = subjectInput.value.trim();
+        const newSubject = newSubjectInput.value.trim();
         if (newSubject === "") {
             alert("科目名を入力してください。");
             return;
@@ -172,8 +166,8 @@ document.addEventListener("DOMContentLoaded", () => {
         registeredSubjects.sort();
         saveData();
         renderSubjects();
-        subjectInput.value = "";
-        subjectInput.style.display = "none"; // 追加後は入力フィールドを隠す
+        newSubjectInput.value = "";
+
         subjectSelect.value = ""; // 選択をリセット
         renderSubjectColorSettings();
     }
@@ -196,8 +190,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const now = new Date(); // add this line to define 'now'
         let subject = subjectSelect.value;
         // 科目選択が空で、かつ入力フィールドに値がある場合、入力フィールドの値を採用
-        if (subject === "" && subjectInput.value.trim() !== "") {
-            subject = subjectInput.value.trim();
+        if (subject === "" && newSubjectInput.value.trim() !== "") {
+            subject = newSubjectInput.value.trim();
         } else if (subject === "") {
             alert("科目名を選択または入力してください。");
             return;
@@ -262,9 +256,8 @@ document.addEventListener("DOMContentLoaded", () => {
         renderStats();
 
         // 入力フィールドをリセット
-        subjectInput.value = "";
-        subjectInput.style.display = "none";
         subjectSelect.value = "";
+        newSubjectInput.value = "";
         detailInput.value = "";
         durationManualInput.value = "30";
         durationSlider.value = "30";
@@ -272,11 +265,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function deleteSession(id) {
+        const sessionIdToDelete = id;
+
         if (confirm("この勉強記録を削除してもよろしいですか？")) {
-            studySessions = studySessions.filter((session) => session.id !== id);
+            const deletedSession = studySessions.find(session => session.id === sessionIdToDelete);
+            studySessions = studySessions.filter(session => session.id !== sessionIdToDelete);
+
+            if (deletedSession) {
+                // gachaHistoryから対応する石の獲得記録を削除
+                gachaHistory = gachaHistory.filter(entry => !(entry.type === 'stone_gain' && entry.sourceId === sessionIdToDelete));
+            }
+
             saveData();
             renderSessions();
             renderStats();
+            updateGachaStoneCount();
         }
     }
 
@@ -333,9 +336,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 option.textContent = subject;
                 subjectSelect.appendChild(option);
             });
-            subjectInput.style.display = "none"; // 登録科目がある場合は入力フィールドを隠す
+            // subjectInput.style.display = "none"; // 登録科目がある場合は入力フィールドを隠す
         } else {
-            subjectInput.style.display = "block"; // 登録科目がない場合は入力フィールドを表示
+            // subjectInput.style.display = "block"; // 登録科目がない場合は入力フィールドを表示
         }
 
         // 設定タブの科目リストの更新
@@ -351,13 +354,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 `;
                 registeredSubjectsList.appendChild(li);
             });
-        }
 
-        registeredSubjectsList.querySelectorAll(".delete-subject-btn").forEach(button => {
-            button.addEventListener("click", (event) => {
-                deleteSubject(event.target.dataset.subject);
+            document.querySelectorAll(".delete-subject-btn").forEach(button => {
+                button.addEventListener("click", (event) => {
+                    deleteSubject(event.target.dataset.subject);
+                });
             });
-        });
+        }
     }
 
     function renderSessions() {
@@ -366,23 +369,24 @@ document.addEventListener("DOMContentLoaded", () => {
             noRecordsMessage.style.display = "block";
         } else {
             noRecordsMessage.style.display = "none";
-            studySessions.forEach((session) => {
+            studySessions.forEach(session => {
                 const li = document.createElement("li");
-                const startTime = new Date(session.startTime);
+                const sessionDateTime = new Date(session.startTime);
+                const formattedDate = sessionDateTime.toLocaleDateString('ja-JP', { year: 'numeric', month: 'numeric', day: 'numeric' });
+                const formattedTime = sessionDateTime.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
                 li.innerHTML = `
-                    <div class="session-details">
-                        <h4>${session.subject}</h4>
-                        ${session.detail ? `<p>詳細: ${session.detail}</p>` : ''}
-                        <p>時間: ${session.duration} 分</p>
-                        <p>開始: ${startTime.toLocaleString('ja-JP')}</p>
-                        <p>獲得石: ${session.stones} 個</p>
+                    <div>
+                        <span class="session-subject">${session.subject}</span>
+                        <span class="session-duration">${session.duration}分</span>
+                        <span class="session-date">${formattedDate} ${formattedTime}</span>
+                        <p class="session-detail">${session.detail || 'メモなし'}</p>
                     </div>
-                    <button class="delete-btn" data-id="${session.id}">削除</button>
+                    <button class="delete-session-btn" data-id="${session.id}">削除</button>
                 `;
                 sessionList.appendChild(li);
             });
 
-            sessionList.querySelectorAll(".delete-btn").forEach((button) => {
+            document.querySelectorAll(".delete-session-btn").forEach(button => {
                 button.addEventListener("click", (event) => {
                     deleteSession(event.target.dataset.id);
                 });
@@ -391,74 +395,61 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function renderStats() {
-        if (studySessions.length === 0) {
-            totalDurationSpan.textContent = "0 時間";
-            totalStonesSpan.textContent = "0 個";
-            subjectStatsList.innerHTML = "";
-            noStatsMessage.style.display = "block";
-            if (subjectChartInstance) subjectChartInstance.destroy();
-            if (dailyChartInstance) dailyChartInstance.destroy();
-            return;
-        }
-
-        noStatsMessage.style.display = "none";
-
-        const totalDurationMinutes = studySessions.reduce((sum, session) => sum + session.duration, 0);
-        totalDurationSpan.textContent = `${(totalDurationMinutes / 60).toFixed(1)} 時間`;
-        const totalStones = studySessions.reduce((sum, session) => sum + session.stones, 0);
-        totalStonesSpan.textContent = `${totalStones} 個`;
-
-        // 科目別統計
+        let totalDuration = 0;
+        let totalStones = 0;
         const subjectDurations = {};
-        studySessions.forEach((session) => {
-            subjectDurations[session.subject] = (subjectDurations[session.subject] || 0) + session.duration;
-        });
-
-        subjectStatsList.innerHTML = "";
-        Object.entries(subjectDurations)
-            .sort(([, a], [, b]) => b - a) // 降順でソート
-            .forEach(([subject, duration]) => {
-                const li = document.createElement("li");
-                li.innerHTML = `<span>${subject}</span><span>${(duration / 60).toFixed(1)} 時間</span>`;
-                subjectStatsList.appendChild(li);
-            });
-        
-        renderSubjectChart(subjectDurations);
-
-        // 日別統計
         const dailyDurations = {};
+
         studySessions.forEach(session => {
+            totalDuration += session.duration;
+            totalStones += session.stones;
+            subjectDurations[session.subject] = (subjectDurations[session.subject] || 0) + session.duration;
+
             const date = new Date(session.startTime).toLocaleDateString('ja-JP');
             dailyDurations[date] = (dailyDurations[date] || 0) + session.duration;
         });
 
-        renderDailyChart(dailyDurations);
+        totalDurationSpan.textContent = `${Math.floor(totalDuration / 60)} 時間 ${totalDuration % 60} 分`;
+        totalStonesSpan.textContent = `${totalStones}`;
+
+        // 科目別統計
+        subjectStatsList.innerHTML = "";
+        const sortedSubjects = Object.keys(subjectDurations).sort((a, b) => subjectDurations[b] - subjectDurations[a]);
+        sortedSubjects.forEach(subject => {
+            const li = document.createElement("li");
+            li.textContent = `${subject}: ${subjectDurations[subject]} 分`;
+            subjectStatsList.appendChild(li);
+        });
+
+        // グラフの更新
+        updateCharts(subjectDurations, dailyDurations);
+
+        if (studySessions.length === 0) {
+            noStatsMessage.style.display = "block";
+        } else {
+            noStatsMessage.style.display = "none";
+        }
     }
 
-    function renderSubjectChart(subjectDurations) {
+    function updateCharts(subjectDurations, dailyDurations) {
+        const subjectCtx = document.getElementById('subjectChart').getContext('2d');
+        const dailyCtx = document.getElementById('dailyChart').getContext('2d');
+
+        // 科目別円グラフ
         if (subjectChartInstance) {
             subjectChartInstance.destroy();
         }
-        const ctx = document.getElementById('subjectChart').getContext('2d');
-        const labels = Object.keys(subjectDurations);
-        const data = Object.values(subjectDurations).map(d => (d / 60).toFixed(1)); // 時間に変換
+        const subjectLabels = Object.keys(subjectDurations);
+        const subjectData = Object.values(subjectDurations);
+        const subjectBackgroundColors = subjectLabels.map(subject => subjectColors[subject] || '#CCCCCC'); // デフォルト色
 
-        const backgroundColors = labels.map(subject => {
-            // 既存の色があればそれを使用、なければランダムな色を生成して保存
-            if (!subjectColors[subject]) {
-                subjectColors[subject] = getRandomColor();
-                saveData(); // 新しい色を保存
-            }
-            return subjectColors[subject];
-        });
-
-        subjectChartInstance = new Chart(ctx, {
+        subjectChartInstance = new Chart(subjectCtx, {
             type: 'pie',
             data: {
-                labels: labels,
+                labels: subjectLabels,
                 datasets: [{
-                    data: data,
-                    backgroundColor: backgroundColors,
+                    data: subjectData,
+                    backgroundColor: subjectBackgroundColors,
                 }]
             },
             options: {
@@ -466,39 +457,32 @@ document.addEventListener("DOMContentLoaded", () => {
                 plugins: {
                     legend: {
                         position: 'top',
-                        labels: {
-                            color: getComputedStyle(document.body).color // テキスト色をCSSから取得
-                        }
                     },
                     title: {
                         display: true,
-                        text: '科目別勉強時間 (時間)',
-                        color: getComputedStyle(document.body).color // テキスト色をCSSから取得
+                        text: '科目別勉強時間',
+                        color: '#FFFFFF' // タイトル色を白に設定
                     }
                 }
-            }
+            },
         });
-    }
 
-    function renderDailyChart(dailyDurations) {
+        // 日別棒グラフ
         if (dailyChartInstance) {
             dailyChartInstance.destroy();
         }
-        const ctx = document.getElementById('dailyChart').getContext('2d');
-        // 日付をソートしてグラフの表示順を保証
         const sortedDates = Object.keys(dailyDurations).sort((a, b) => new Date(a) - new Date(b));
-        const data = sortedDates.map(date => (dailyDurations[date] / 60).toFixed(1)); // 時間に変換
+        const dailyLabels = sortedDates;
+        const dailyData = sortedDates.map(date => dailyDurations[date]);
 
-        dailyChartInstance = new Chart(ctx, {
+        dailyChartInstance = new Chart(dailyCtx, {
             type: 'bar',
             data: {
-                labels: sortedDates,
+                labels: dailyLabels,
                 datasets: [{
-                    label: '日別勉強時間 (時間)',
-                    data: data,
-                    backgroundColor: '#007aff',
-                    borderColor: '#007aff',
-                    borderWidth: 1
+                    label: '日別勉強時間 (分)',
+                    data: dailyData,
+                    backgroundColor: '#42A5F5',
                 }]
             },
             options: {
@@ -506,31 +490,31 @@ document.addEventListener("DOMContentLoaded", () => {
                 plugins: {
                     legend: {
                         display: false,
-                        labels: {
-                            color: getComputedStyle(document.body).color // テキスト色をCSSから取得
-                        }
                     },
                     title: {
                         display: true,
-                        text: '日別勉強時間 (時間)',
-                        color: getComputedStyle(document.body).color // テキスト色をCSSから取得
+                        text: '日別勉強時間',
+                        color: '#FFFFFF' // タイトル色を白に設定
                     }
                 },
                 scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: '時間',
-                            color: getComputedStyle(document.body).color // テキスト色をCSSから取得
+                    x: {
+                        stacked: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.2)' // グリッド線色を白に近い色に設定
                         },
                         ticks: {
-                            color: getComputedStyle(document.body).color // テキスト色をCSSから取得
+                            color: '#FFFFFF' // 軸ラベル色を白に設定
                         }
                     },
-                    x: {
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.2)' // グリッド線色を白に近い色に設定
+                        },
                         ticks: {
-                            color: getComputedStyle(document.body).color // テキスト色をCSSから取得
+                            color: '#FFFFFF' // 軸ラベル色を白に設定
                         }
                     }
                 }
@@ -538,121 +522,102 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-        function updateGachaStoneCount() {
-        const totalStones = studySessions.reduce((sum, session) => sum + session.stones, 0);
-        const spentStones = gachaHistory.reduce((sum, result) => sum + result.cost, 0);
-        const currentStones = totalStones - spentStones;
-        currentStonesSpan.textContent = currentStones;
-    }
+    function renderSubjectColorSettings() {
+        colorSettingsDiv.innerHTML = ''; // コンテンツをクリア
 
-    function renderCharacters() {
-        characterListDiv.innerHTML = ""; // 既存のリストをクリア
-        if (acquiredCharacters.length === 0) {
-            noCharactersMessage.style.display = "block";
+        if (registeredSubjects.length === 0) {
+            colorSettingsDiv.innerHTML = '<p class="message-text">科目を登録すると、ここでグラフの色を設定できます。</p>';
             return;
         }
-        noCharactersMessage.style.display = "none";
 
-        // レア度別にグループ化
-        const groupedCharacters = acquiredCharacters.reduce((acc, char) => {
-            if (!acc[char.rarity]) {
-                acc[char.rarity] = [];
+        registeredSubjects.forEach(subject => {
+            // subjectColorsに色が設定されていない場合、ランダムな色を設定
+            if (!subjectColors[subject]) {
+                subjectColors[subject] = '#' + Math.floor(Math.random()*16777215).toString(16);
             }
-            acc[char.rarity].push(char);
-            return acc;
-        }, {});
 
-        // レア度順にソートして表示
-        Object.keys(groupedCharacters).sort((a, b) => b - a).forEach(rarity => {
-            const rarityHeader = document.createElement("h3");
-            rarityHeader.textContent = `星${rarity} キャラクター`;
-            characterListDiv.appendChild(rarityHeader);
+            const div = document.createElement("div");
+            div.classList.add("color-setting-item");
+            div.innerHTML = `
+                <label for="color-${subject}">${subject}:</label>
+                <input type="color" id="color-${subject}" value="${subjectColors[subject]}">
+            `;
+            colorSettingsDiv.appendChild(div);
 
-            const ul = document.createElement("ul");
-            groupedCharacters[rarity].forEach(char => {
-                const li = document.createElement("li");
-                li.textContent = char.name;
-                ul.appendChild(li);
+            const colorInput = div.querySelector(`#color-${subject}`);
+            colorInput.addEventListener('change', (event) => {
+                subjectColors[subject] = event.target.value;
+                saveData();
+                renderStats(); // 色変更をグラフに反映
             });
-            characterListDiv.appendChild(ul);
         });
     }
 
+    // ガチャ関連関数
     gacha1PullBtn.addEventListener("click", () => pullGacha(1));
     gacha10PullBtn.addEventListener("click", () => pullGacha(10));
 
-    function pullGacha(count) {
-        const cost = 160 * count;
-        const totalStones = studySessions.reduce((sum, session) => sum + session.stones, 0);
-        const spentStones = gachaHistory.reduce((sum, result) => sum + result.cost, 0);
-        const currentStones = totalStones - spentStones;
+    function pullGacha(pullCount) {
+        const stoneCost = pullCount === 1 ? 160 : 1600;
+        const currentStones = calculateCurrentStones();
 
-        if (currentStones < cost) {
-            alert(`石が足りません！ 現在の石: ${currentStones}個, 必要な石: ${cost}個`);
+        if (currentStones < stoneCost) {
+            alert(`石が足りません。現在${currentStones}個、${pullCount}回引くには${stoneCost}個必要です。`);
             return;
         }
 
-        if (!confirm(`${count}回ガチャを引きますか？ (${cost}石消費)`)) {
+        if (!confirm(`${pullCount}回ガチャを引きますか？ (石${stoneCost}個消費)`)) {
             return;
         }
 
-        let results = [];
-        let ssrPulledIn10 = false; // 10連天井用
-        let srPulledIn10 = false; // 10連天井用
+        // 石を消費
+        gachaHistory.push({ type: 'stone_spend', amount: stoneCost, timestamp: new Date().toISOString() });
+        updateGachaStoneCount();
 
-        for (let i = 0; i < count; i++) {
+        const results = [];
+        let isSSRGuaranteed = false;
+
+        for (let i = 0; i < pullCount; i++) {
             gachaPullCount++;
-            let item = drawGachaItem();
-            results.push(item);
-            gachaHistory.push({ item: item, cost: 160, timestamp: new Date().toISOString() });
-            if (item.type === 'character') {
-                acquiredCharacters.push(item);
+
+            // 10連でSSRが出なかった場合、10連目はSSR確定
+            if (pullCount === 10 && i === 9 && consecutivePullsWithoutSSR >= 9) {
+                isSSRGuaranteed = true;
             }
 
+            const item = drawGachaItem(isSSRGuaranteed);
+            results.push(item);
+
             if (item.rarity === 5) {
-                consecutivePullsWithoutSSR = 0;
-                ssrPulledIn10 = true;
-            } else if (item.rarity === 4) {
-                consecutivePullsWithoutSSR++;
-                srPulledIn10 = true;
+                consecutivePullsWithoutSSR = 0; // SSRが出たらリセット
             } else {
                 consecutivePullsWithoutSSR++;
             }
-        }
-
-        // 10連天井の判定とリセット
-        if (count === 10 && !ssrPulledIn10 && !srPulledIn10) {
-            // 10連でSSRもSRも出なかった場合、次の10連はSR以上確定
-            // このロジックは、次の10連時に適用されるため、ここではフラグを立てるのみ
-            // 実際の実装では、次の10連を引く際にこのフラグをチェックして確率を調整する
-            // 10連でSSRもSRも出なかった場合、最後のアイテムを星4/星5に置き換える
-            const lastItemIndex = results.length - 1;
-            let guaranteedItem = drawGuaranteedSRorSSRItem(); // 星4/星5確定
-            // 置き換えられたアイテムが星5の場合、consecutivePullsWithoutSSRをリセット
-            results[lastItemIndex] = guaranteedItem;
-            gachaHistory[gachaHistory.length - 1].item = guaranteedItem;
-            consecutivePullsWithoutSSR = 0; // 天井アイテムが出たのでリセット
+            
+            // 獲得したキャラクターを保存
+            if (item.type === 'character') {
+                acquiredCharacters.push(item);
+            }
+            gachaHistory.push({ type: 'gacha_pull', item: item, timestamp: new Date().toISOString() });
         }
 
         saveData();
-        updateGachaStoneCount();
         displayGachaResults(results);
+        renderCharacters(); // キャラリストを更新
+        updateGachaStoneCount(); // 石の数を更新
     }
 
-    function drawGachaItem() {
+    function drawGachaItem(isSSRGuaranteed = false) {
         let star5Rate = 0.006;
         let star4Rate = 0.06;
         let star3Rate = 1 - star5Rate - star4Rate;
 
-        // 天井システム: 75連目以降、1連ごとに星5確率6%上昇
-        if (gachaPullCount >= 75) {
-            const bonusRate = Math.min(0.994, (gachaPullCount - 74) * 0.06); // 最大99.4%まで
-            star5Rate = star5Rate + bonusRate;
-            star4Rate = Math.max(0, star4Rate - bonusRate); // 星4確率から減らす
-            star3Rate = Math.max(0, 1 - star5Rate - star4Rate); // 星3確率も調整
+        // 10連でSSR確定の場合の確率調整
+        if (isSSRGuaranteed) {
+            star5Rate = 1; // SSR確定
+            star4Rate = 0; 
+            star3Rate = 0;
         }
-
-
 
         const rand = Math.random();
         if (rand < star5Rate) {
@@ -664,65 +629,58 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function drawGuaranteedSRorSSRItem() {
-        const rand = Math.random();
-        if (rand < 0.006) { // 0.6%で星5
-            return gachaItems.star5[Math.floor(Math.random() * gachaItems.star5.length)];
-        } else { // 99.4%で星4
-            return gachaItems.star4[Math.floor(Math.random() * gachaItems.star4.length)];
-        }
-    }
-
     function displayGachaResults(results) {
         gachaResultsDiv.innerHTML = ""; // Clear previous results
-        results.forEach(item => {
+        results.forEach((item, index) => {
             const p = document.createElement("p");
-            p.textContent = `レア度: ${item.rarity} (${item.type}), 名前: ${item.name}`;
+            p.textContent = `${index + 1}連目: ${"☆".repeat(item.rarity)}${item.name}`;
             gachaResultsDiv.appendChild(p);
         });
     }
 
-function renderSubjectColorSettings() {
-        colorSettingsDiv.innerHTML = ''; // コンテンツをクリア
-        if (registeredSubjects.length === 0) {
-            const p = document.createElement('p');
-            p.className = 'message-text';
-            p.textContent = '科目ごとのグラフ色をここで設定できます。科目を登録すると表示されます。';
-            colorSettingsDiv.appendChild(p);
-            return;
-        }
+    function calculateCurrentStones() {
+        let totalEarned = 0;
+        let totalSpent = 0;
 
-        registeredSubjects.forEach(subject => {
-            const div = document.createElement('div');
-            // 色がまだ設定されていなければランダムな色を割り当てる
-            if (!subjectColors[subject]) {
-                subjectColors[subject] = getRandomColor();
-                saveData(); // 新しい色を保存
+        gachaHistory.forEach(entry => {
+            if (entry.type === 'stone_gain') {
+                totalEarned += entry.amount;
+            } else if (entry.type === 'stone_spend') {
+                totalSpent += entry.amount;
             }
-            div.innerHTML = `
-                <label for="color-${subject}">${subject}</label>
-                <input type="color" id="color-${subject}" value="${subjectColors[subject]}">
-            `;
-            const colorInput = div.querySelector(`#color-${subject}`);
-            colorInput.addEventListener('change', (event) => {
-                subjectColors[subject] = event.target.value;
-                saveData();
-                renderStats(); // 色変更後に統計グラフを再描画
-            });
-            colorSettingsDiv.appendChild(div);
         });
+        return totalEarned - totalSpent;
     }
 
-    function getRandomColor() {
-        const letters = '0123456789ABCDEF';
-        let color = '#';
-        for (let i = 0; i < 6; i++) {
-            color += letters[Math.floor(Math.random() * 16)];
+    function updateGachaStoneCount() {
+        currentStonesSpan.textContent = calculateCurrentStones();
+        saveData(); // 石の数を更新したら保存
+    }
+
+    function renderCharacters() {
+        characterListDiv.innerHTML = "";
+        if (acquiredCharacters.length === 0) {
+            noCharactersMessage.style.display = "block";
+        } else {
+            noCharactersMessage.style.display = "none";
+            // レア度順、名前順でソート
+            const sortedCharacters = [...acquiredCharacters].sort((a, b) => {
+                if (a.rarity !== b.rarity) {
+                    return b.rarity - a.rarity; // レア度降順
+                }
+                return a.name.localeCompare(b.name); // 名前昇順
+            });
+
+            sortedCharacters.forEach(char => {
+                const charDiv = document.createElement("div");
+                charDiv.classList.add("character-item");
+                charDiv.innerHTML = `
+                    <span class="character-rarity">${"☆".repeat(char.rarity)}</span>
+                    <span class="character-name">${char.name}</span>
+                `;
+                characterListDiv.appendChild(charDiv);
+            });
         }
-        return color;
     }
-
-    // 初期タブの表示
-    switchTab("record");
 });
 

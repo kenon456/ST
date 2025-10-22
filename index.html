@@ -30,12 +30,7 @@
                 <label for="time-input">時刻:</label>
                 <input type="time" id="time-input">
                 
-                <label for="subject-select">科目名:</label>
-                <select id="subject-select">
-                    <option value="">科目を選択または入力</option>
-                </select>
-                <input type="text" id="subject-input" placeholder="新しい科目名" style="display: none;"> <!-- 初期は非表示 -->
-                <button id="add-subject-btn">科目追加</button>
+
 
                 <textarea id="detail-input" placeholder="詳細メモ (任意)" rows="3"></textarea>
                 <div class="duration-control">
@@ -52,8 +47,7 @@
         <div id="stats-section" class="tab-content">
             <h2>統計</h2>
             <div class="stats-summary">
-                <p>総勉強時間: <span id="total-duration">0 時間</span></p>
-                <p>石: <span id="total-stones">0 個</span></p>
+                <p>総勉強時間: <span id="total-duration">0 時間</span></                    <p>累計獲得石: <span id="total-stones">0</span>個</p>
             </div>
             
             <h3>科目別勉強時間</h3>
@@ -84,6 +78,10 @@
         <div id="settings-section" class="tab-content">
             <h2>設定</h2>
             <h3>科目管理</h3>
+            <div class="subject-management">
+                <input type="text" id="new-subject-input" placeholder="新しい科目名">
+                <button id="add-subject-btn">科目追加</button>
+            </div>
             <ul id="registered-subjects-list"></ul>
             <p id="no-subjects-message" class="message-text">登録された科目はありません。</p>
             
