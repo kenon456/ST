@@ -558,22 +558,30 @@ document.addEventListener("DOMContentLoaded", () => {
         updateGachaStoneCount();
 
         const results = [];
-        let isSSRGuaranteed = false;
+            let isGuaranteedSRorSSR = false;
 
         for (let i = 0; i < pullCount; i++) {
             gachaPullCount++;
 
-            // 10連でSSRが出なかった場合、10連目はSSR確定
-            if (pullCount === 10 && i === 9 && consecutivePullsWithoutSSR >= 9) {
-                isSSRGuaranteed = true;
+            // 10連確定枠の処理 (星3が9連続で排出された場合)
+            if (consecutivePullsWithoutSSR >= 9) {
+                isGuaranteedSRorSSR = true;
             }
 
-            const item = drawGachaItem(isSSRGuaranteed);
+            let currentStar5Rate = 0.006; // 基本の星5確率
+            // 天井ロジック: 75連目以降、6%ずつ星5確率が上昇
+            if (consecutivePullsWithoutSSR >= 75) {
+                currentStar5Rate = 0.006 + (consecutivePullsWithoutSSR - 74) * 0.06;
+                if (currentStar5Rate > 1) currentStar5Rate = 1; // 100%を超えないように
+            }
+
+            const item = drawGachaItem(isGuaranteedSRorSSR, currentStar5Rate);
             results.push(item);
 
+            // 星5が出たら天井カウントをリセット
             if (item.rarity === 5) {
-                consecutivePullsWithoutSSR = 0; // SSRが出たらリセット
-            } else {
+                consecutivePullsWithoutSSR = 0;
+            } else if (item.rarity < 5) { // 星5以外が出たらカウントアップ
                 consecutivePullsWithoutSSR++;
             }
             
@@ -590,25 +598,28 @@ document.addEventListener("DOMContentLoaded", () => {
         updateGachaStoneCount(); // 石の数を更新
     }
 
-    function drawGachaItem(isSSRGuaranteed = false) {
-        let star5Rate = 0.006;
-        let star4Rate = 0.06;
+    function drawGachaItem(isGuaranteedSRorSSR = false, currentStar5Rate = 0.006) {
+        let star5Rate = currentStar5Rate; // 天井による変動を考慮
+        let star4Rate = 0.06; // 基本の星4確率
         let star3Rate = 1 - star5Rate - star4Rate;
 
-        // 10連でSSR確定の場合の確率調整
-        if (isSSRGuaranteed) {
-            star5Rate = 1; // SSR確定
-            star4Rate = 0; 
-            star3Rate = 0;
+        // 9連続星3排出後の確定枠の確率調整
+        if (isGuaranteedSRorSSR) {
+            const rand = Math.random();
+            if (rand < 0.006) { // 0.6%で星5
+                return getRandomItem("star5");
+            } else { // 99.4%で星4
+                return getRandomItem("star4");
+            }
         }
 
         const rand = Math.random();
         if (rand < star5Rate) {
-            return gachaItems.star5[Math.floor(Math.random() * gachaItems.star5.length)];
+            return getRandomItem("star5");
         } else if (rand < star5Rate + star4Rate) {
-            return gachaItems.star4[Math.floor(Math.random() * gachaItems.star4.length)];
+            return getRandomItem("star4");
         } else {
-            return gachaItems.star3[Math.floor(Math.random() * gachaItems.star3.length)];
+            return getRandomItem("star3");
         }
     }
 
@@ -619,6 +630,11 @@ document.addEventListener("DOMContentLoaded", () => {
             p.textContent = `${index + 1}連目: ${"☆".repeat(item.rarity)}${item.name}`;
             gachaResultsDiv.appendChild(p);
         });
+    }
+
+    function getRandomItem(rarity) {
+        const items = gachaItems[rarity];
+        return items[Math.floor(Math.random() * items.length)];
     }
 
     function calculateCurrentStones() {
