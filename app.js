@@ -104,39 +104,27 @@ document.addEventListener("DOMContentLoaded", () => {
     // 関数定義
     function switchTab(tab) {
         // すべてのタブボタンとセクションを非アクティブ化
-        recordTabBtn.classList.remove("active");
-        statsTabBtn.classList.remove("active");
-        settingsTabBtn.classList.remove("active");
-        gachaTabBtn.classList.remove("active");
-        charactersTabBtn.classList.remove("active");
-        recordSection.classList.remove("active");
-        statsSection.classList.remove("active");
-        settingsSection.classList.remove("active");
-        gachaSection.classList.remove("active");
-        charactersSection.classList.remove("active");
+            document.querySelectorAll(".tab-selector button").forEach(btn => btn.classList.remove("active"));
+            document.querySelectorAll(".tab-content").forEach(sec => sec.classList.remove("active"));
 
         // 選択されたタブをアクティブ化
         if (tab === "record") {
-            recordTabBtn.classList.add("active");
-            recordSection.classList.add("active");
-            setCurrentDateTime(); // 記録タブに戻った時に現在日時を設定
-        } else if (tab === "stats") {
-            statsTabBtn.classList.add("active");
-            statsSection.classList.add("active");
-            renderStats(); // 統計タブ表示時に再描画
-        } else if (tab === "settings") {
-            settingsTabBtn.classList.add("active");
-            settingsSection.classList.add("active");
-            renderSubjects(); // 設定タブ表示時に科目リストを再描画
-            renderSubjectColorSettings(); // 設定タブ表示時に色設定を再描画
-        } else if (tab === "gacha") {
-            gachaTabBtn.classList.add("active");
-            gachaSection.classList.add("active");
-            updateGachaStoneCount();
-        } else if (tab === "characters") {
-            charactersTabBtn.classList.add("active");
-            charactersSection.classList.add("active");
-            renderCharacters();
+            document.getElementById(`${tab}-tab`).classList.add("active");
+            document.getElementById(`${tab}-section`).classList.add("active");
+
+            if (tab === "record") {
+                setCurrentDateTime(); // 記録タブに戻った時に現在日時を設定
+                renderSubjects(); // 記録タブでも科目選択を更新
+            } else if (tab === "stats") {
+                renderStats(); // 統計タブ表示時に再描画
+            } else if (tab === "settings") {
+                renderSubjects(); // 設定タブ表示時に科目リストを再描画
+                renderSubjectColorSettings(); // 設定タブ表示時に色設定を再描画
+            } else if (tab === "gacha") {
+                updateGachaStoneCount();
+            } else if (tab === "characters") {
+                renderCharacters();
+            }
         }
     }
 
@@ -329,17 +317,12 @@ document.addEventListener("DOMContentLoaded", () => {
         registeredSubjectsList.innerHTML = "";
 
         // 科目選択ドロップダウンの更新
-        if (registeredSubjects.length > 0) {
-            registeredSubjects.forEach(subject => {
-                const option = document.createElement("option");
-                option.value = subject;
-                option.textContent = subject;
-                subjectSelect.appendChild(option);
-            });
-            // subjectInput.style.display = "none"; // 登録科目がある場合は入力フィールドを隠す
-        } else {
-            // subjectInput.style.display = "block"; // 登録科目がない場合は入力フィールドを表示
-        }
+        registeredSubjects.forEach(subject => {
+            const option = document.createElement("option");
+            option.value = subject;
+            option.textContent = subject;
+            subjectSelect.appendChild(option);
+        });
 
         // 設定タブの科目リストの更新
         if (registeredSubjects.length === 0) {
