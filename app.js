@@ -47,9 +47,36 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // ガチャアイテム定義
     const gachaItems = {
-        'star5': Array.from({ length: 60 }, (_, i) => ({ name: `星5キャラ${i + 1}`, rarity: 5, type: 'character' })),
-        'star4': Array.from({ length: 48 }, (_, i) => ({ name: `星4キャラ${i + 1}`, rarity: 4, type: 'character' })),
-        'star3': Array.from({ length: 6 }, (_, i) => ({ name: `星3素材${i + 1}`, rarity: 3, type: 'material' }))
+        'star5': [
+            { name: 'ウェンティ', rarity: 5, type: 'character' }, { name: 'クレー', rarity: 5, type: 'character' }, { name: 'タルタリヤ', rarity: 5, type: 'character' }, { name: '鍾離', rarity: 5, type: 'character' }, { name: 'アルベド', rarity: 5, type: 'character' },
+            { name: '甘雨', rarity: 5, type: 'character' }, { name: '魈', rarity: 5, type: 'character' }, { name: '胡桃', rarity: 5, type: 'character' }, { name: 'エウルア', rarity: 5, type: 'character' }, { name: '楓原万葉', rarity: 5, type: 'character' },
+            { name: '神里綾華', rarity: 5, type: 'character' }, { name: '宵宮', rarity: 5, type: 'character' }, { name: '雷電将軍', rarity: 5, type: 'character' }, { name: '珊瑚宮心海', rarity: 5, type: 'character' }, { name: '荒瀧一斗', rarity: 5, type: 'character' },
+            { name: '申鶴', rarity: 5, type: 'character' }, { name: '八重神子', rarity: 5, type: 'character' }, { name: '神里綾人', rarity: 5, type: 'character' }, { name: '夜蘭', rarity: 5, type: 'character' }, { name: 'ティナリ', rarity: 5, type: 'character' },
+            { name: 'セノ', rarity: 5, type: 'character' }, { name: 'ニィロウ', rarity: 5, type: 'character' }, { name: 'ナヒーダ', rarity: 5, type: 'character' }, { name: '放浪者', rarity: 5, type: 'character' }, { name: 'アルハイゼン', rarity: 5, type: 'character' },
+            { name: 'ディシア', rarity: 5, type: 'character' }, { name: '白朮', rarity: 5, type: 'character' }, { name: 'リネ', rarity: 5, type: 'character' }, { name: 'ヌヴィレット', rarity: 5, type: 'character' }, { name: 'リオセスリ', rarity: 5, type: 'character' },
+            { name: 'フリーナ', rarity: 5, type: 'character' }, { name: 'ナヴィア', rarity: 5, type: 'character' }, { name: '閑雲', rarity: 5, type: 'character' }, { name: '千織', rarity: 5, type: 'character' }, { name: 'アルレッキーノ', rarity: 5, type: 'character' },
+            { name: 'クロリンデ', rarity: 5, type: 'character' }, { name: 'シグウィン', rarity: 5, type: 'character' }, { name: 'セトス', rarity: 5, type: 'character' }, { name: '螺旋の祝福', rarity: 5, type: 'character' }, { name: '原石の塊', rarity: 5, type: 'character' },
+            { name: 'モラの花', rarity: 5, type: 'character' }, { name: '経験値の書', rarity: 5, type: 'character' }, { name: '仕上げ用魔鉱', rarity: 5, type: 'character' }, { name: '天賦の素材', rarity: 5, type: 'character' }, { name: '武器突破素材', rarity: 5, type: 'character' },
+            { name: '聖遺物', rarity: 5, type: 'character' }, { name: '濃縮樹脂', rarity: 5, type: 'character' }, { name: '脆弱樹脂', rarity: 5, type: 'character' }, { name: '出会いの縁', rarity: 5, type: 'character' }, { name: '紡がれた運命', rarity: 5, type: 'character' },
+            { name: '王冠', rarity: 5, type: 'character' }, { name: '知恵の冠', rarity: 5, type: 'character' }, { name: '調度品設計図', rarity: 5, type: 'character' }, { name: '便利アイテム', rarity: 5, type: 'character' }, { name: '特産品', rarity: 5, type: 'character' },
+            { name: '料理', rarity: 5, type: 'character' }, { name: '不思議な鉱石', rarity: 5, type: 'character' }, { name: '冒険者の経験', rarity: 5, type: 'character' }, { name: '大英雄の経験', rarity: 5, type: 'character' }, { name: '仕上げ用良鉱', rarity: 5, type: 'character' }
+        ],
+        'star4': [
+            { name: 'フィッシュル', rarity: 4, type: 'character' }, { name: 'スクロース', rarity: 4, type: 'character' }, { name: 'ベネット', rarity: 4, type: 'character' }, { name: 'ノエル', rarity: 4, type: 'character' }, { name: 'リサ', rarity: 4, type: 'character' },
+            { name: 'ガイア', rarity: 4, type: 'character' }, { name: 'アンバー', rarity: 4, type: 'character' }, { name: 'バーバラ', rarity: 4, type: 'character' }, { name: '香菱', rarity: 4, type: 'character' }, { name: '凝光', rarity: 4, type: 'character' },
+            { name: '北斗', rarity: 4, type: 'character' }, { name: '行秋', rarity: 4, type: 'character' }, { name: '重雲', rarity: 4, type: 'character' }, { name: 'レザー', rarity: 4, type: 'character' }, { name: '辛炎', rarity: 4, type: 'character' },
+            { name: 'ディオナ', rarity: 4, type: 'character' }, { name: 'ロサリア', rarity: 4, type: 'character' }, { name: '煙緋', rarity: 4, type: 'character' }, { name: '早柚', rarity: 4, type: 'character' }, { name: '九条裟羅', rarity: 4, type: 'character' },
+            { name: 'トーマ', rarity: 4, type: 'character' }, { name: 'ゴロー', rarity: 4, type: 'character' }, { name: '雲菫', rarity: 4, type: 'character' }, { name: '久岐忍', rarity: 4, type: 'character' }, { name: '鹿野院平蔵', rarity: 4, type: 'character' },
+            { name: 'コレイ', rarity: 4, type: 'character' }, { name: 'ドリー', rarity: 4, type: 'character' }, { name: 'キャンディス', rarity: 4, type: 'character' }, { name: 'レイラ', rarity: 4, type: 'character' }, { name: 'ファルザン', rarity: 4, type: 'character' },
+            { name: 'ヨォーヨ', rarity: 4, type: 'character' }, { name: 'ミカ', rarity: 4, type: 'character' }, { name: 'カヴェ', rarity: 4, type: 'character' }, { name: '綺良々', rarity: 4, type: 'character' }, { name: 'フレミネ', rarity: 4, type: 'character' },
+            { name: 'シャルロット', rarity: 4, type: 'character' }, { name: 'シュヴルーズ', rarity: 4, type: 'character' }, { name: '嘉明', rarity: 4, type: 'character' }, { name: 'セシリアの苗', rarity: 4, type: 'character' }, { name: '風車アスター', rarity: 4, type: 'character' },
+            { name: 'ググプラム', rarity: 4, type: 'character' }, { name: 'ヴァルベリー', rarity: 4, type: 'character' }, { name: '慕風のマッシュルーム', rarity: 4, type: 'character' }, { name: 'イグサ', rarity: 4, type: 'character' }, { name: '落落莓', rarity: 4, type: 'character' },
+            { name: '絶雲の唐辛子', rarity: 4, type: 'character' }, { name: '霓裳花', rarity: 4, type: 'character' }, { name: '琉璃百合', rarity: 4, type: 'character' }
+        ],
+        'star3': [
+            { name: '仕上げ用鉱石', rarity: 3, type: 'material' }, { name: 'モラ', rarity: 3, type: 'material' }, { name: '冒険家の経験', rarity: 3, type: 'material' },
+            { name: '脆弱な樹脂', rarity: 3, type: 'material' }, { name: '聖遺物残骸', rarity: 3, type: 'material' }, { name: '武器強化素材', rarity: 3, type: 'material' }
+        ]
     };
 
     // 初期化
@@ -563,7 +590,8 @@ document.addEventListener("DOMContentLoaded", () => {
         for (let i = 0; i < pullCount; i++) {
             gachaPullCount++;
 
-            // 10連確定枠の処理 (星3が9連続で排出された場合)
+            // 確定枠の処理 (星3が9連続で排出された場合)
+            // 10連ガチャの最後の1回が確定枠ではない
             if (consecutivePullsWithoutSSR >= 9) {
                 isGuaranteedSRorSSR = true;
             }
@@ -578,10 +606,10 @@ document.addEventListener("DOMContentLoaded", () => {
             const item = drawGachaItem(isGuaranteedSRorSSR, currentStar5Rate);
             results.push(item);
 
-            // 星5または確定枠でSR以上が出たら天井カウントをリセット
-            if (item.rarity === 5 || (isGuaranteedSRorSSR && item.rarity >= 4)) {
+            // 星4または星5が出たら連続星3カウントをリセット
+            if (item.rarity >= 4) {
                 consecutivePullsWithoutSSR = 0;
-            } else { // それ以外の場合、星5以外が出たらカウントアップ
+            } else { // 星3が出たらカウントアップ
                 consecutivePullsWithoutSSR++;
             }
             
@@ -589,7 +617,9 @@ document.addEventListener("DOMContentLoaded", () => {
             if (item.type === 'character') {
                 acquiredCharacters.push(item);
             }
-            gachaHistory.push({ type: 'gacha_pull', item: item, timestamp: new Date().toISOString() });
+            gachaHistory.push({ type: 'gacha_pull', item: item, timestamp: new Date().toISOString(), pullNumber: gachaPullCount });
+            // ガチャ履歴を保存した後に表示を更新
+            renderGachaHistory();
         }
 
         saveData();
@@ -613,6 +643,16 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
 
+        // 通常の確率計算
+        const rand = Math.random();
+        if (rand < star5Rate) {
+            return getRandomItem("star5");
+        } else if (rand < star5Rate + star4Rate) {
+            return getRandomItem("star4");
+        } else {
+            return getRandomItem("star3");
+        }
+
         const rand = Math.random();
         if (rand < star5Rate) {
             return getRandomItem("star5");
@@ -630,6 +670,7 @@ document.addEventListener("DOMContentLoaded", () => {
             p.textContent = `${index + 1}連目: ${"☆".repeat(item.rarity)}${item.name}`;
             gachaResultsDiv.appendChild(p);
         });
+        renderGachaHistory(); // ガチャ履歴を更新
     }
 
     function getRandomItem(rarity) {
@@ -654,6 +695,19 @@ document.addEventListener("DOMContentLoaded", () => {
     function updateGachaStoneCount() {
         currentStonesSpan.textContent = calculateCurrentStones();
         saveData(); // 石の数を更新したら保存
+    }
+
+    function renderGachaHistory() {
+        gachaHistoryDiv.innerHTML = ""; // Clear previous history
+        // 最新の履歴から表示
+        const reversedHistory = [...gachaHistory].reverse();
+        reversedHistory.forEach(entry => {
+            if (entry.type === 'gacha_pull') {
+                const p = document.createElement("p");
+                p.textContent = `${entry.pullNumber}連目: ${"☆".repeat(entry.item.rarity)}${entry.item.name} (${new Date(entry.timestamp).toLocaleString()})`;
+                gachaHistoryDiv.appendChild(p);
+            }
+        });
     }
 
     function renderCharacters() {
