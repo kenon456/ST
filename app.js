@@ -1,4 +1,6 @@
+
 document.addEventListener("DOMContentLoaded", () => {
+
     // UI要素の取得
     const subjectSelect = document.getElementById("subject-select");
     const newSubjectInput = document.getElementById("new-subject-input"); // 設定タブの新しい科目入力フィールド
@@ -85,6 +87,13 @@ document.addEventListener("DOMContentLoaded", () => {
     renderSessions();
     renderSubjectColorSettings();
     setCurrentDateTime(); // 初期表示時に現在日時を設定
+    renderStats();
+    renderCharacters();
+    updateGachaStoneCount();
+
+    // 初期タブを「記録」に設定
+    switchTab("record");
+
 
     // 設定タブの科目追加ボタンにイベントリスナーを追加
     addSubjectBtnSettings.addEventListener("click", addSubject);
@@ -112,6 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll(".tab-selector button").forEach(button => {
         button.addEventListener("click", () => {
             const tabId = button.id.replace("-tab", "");
+
             switchTab(tabId);
         });
     });
@@ -124,11 +134,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // 選択されたタブをアクティブ化
         document.getElementById(`${tab}-tab`).classList.add("active");
-        document.getElementById(`${tab}-section`).classList.add("active");
+        const targetSection = document.getElementById(`${tab}-section`);
+        if (targetSection) {
+            targetSection.classList.add("active");
+        } else {
+            console.error(`Section not found for tab: ${tab}`);
+        }
 
+        // 各タブに固有の処理
         if (tab === "record") {
             setCurrentDateTime(); // 記録タブに戻った時に現在日時を設定
             renderSubjects(); // 記録タブでも科目選択を更新
+            renderSessions();
         } else if (tab === "stats") {
             renderStats(); // 統計タブ表示時に再描画
         } else if (tab === "settings") {
@@ -138,9 +155,6 @@ document.addEventListener("DOMContentLoaded", () => {
             updateGachaStoneCount();
         } else if (tab === "characters") {
             renderCharacters();
-        } else if (tab === "record") {
-            renderSessions();
-            renderSubjects();
         }
     }
 
@@ -248,8 +262,8 @@ document.addEventListener("DOMContentLoaded", () => {
             subject: subject,
             detail: detail,
             duration: duration,
-            startTime: sessionDateTime.toISOString(),
-            stones: duration * 10 // 1分あたり10個の石
+            stones: duration * 10, // 1分あたり10個の石
+            startTime: sessionDateTime.toISOString()
         };
 
         studySessions.push(newSession);
@@ -377,17 +391,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 const formattedTime = sessionDateTime.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
                 li.innerHTML = `
                     <div>
-                        <span class="session-subject">${session.subject}</span>
-                        <span class="session-duration">${session.duration}分</span>
-                        <span class="session-date">${formattedDate} ${formattedTime}</span>
-                        <p class="session-detail">${session.detail || 'メモなし'}</p>
+                        <h4>${session.subject}</h4>
+                        <p>${session.detail}</p>
+                        <small>${formattedDate} ${formattedTime} - ${session.duration} 分</small>
                     </div>
-                    <button class="delete-session-btn" data-id="${session.id}">削除</button>
+                    <button class="delete-btn" data-id="${session.id}">削除</button>
                 `;
                 sessionList.appendChild(li);
             });
 
-            document.querySelectorAll(".delete-session-btn").forEach(button => {
+            document.querySelectorAll(".delete-btn").forEach(button => {
                 button.addEventListener("click", (event) => {
                     deleteSession(event.target.dataset.id);
                 });
@@ -396,127 +409,93 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function renderStats() {
-        let totalDuration = 0;
-        let totalStones = 0;
+        const totalDuration = studySessions.reduce((total, session) => total + session.duration, 0);
+        const hours = Math.floor(totalDuration / 60);
+        const minutes = totalDuration % 60;
+        totalDurationSpan.textContent = `${hours} 時間 ${minutes} 分`;
+
+        const totalStones = studySessions.reduce((total, session) => total + session.stones, 0);
+        totalStonesSpan.textContent = totalStones;
+
         const subjectDurations = {};
-        const dailyDurations = {};
-
         studySessions.forEach(session => {
-            totalDuration += session.duration;
-            totalStones += session.stones;
-            subjectDurations[session.subject] = (subjectDurations[session.subject] || 0) + session.duration;
-
-            const date = new Date(session.startTime).toLocaleDateString('ja-JP');
-            dailyDurations[date] = (dailyDurations[date] || 0) + session.duration;
+            if (subjectDurations[session.subject]) {
+                subjectDurations[session.subject] += session.duration;
+            } else {
+                subjectDurations[session.subject] = session.duration;
+            }
         });
 
-        totalDurationSpan.textContent = `${Math.floor(totalDuration / 60)} 時間 ${totalDuration % 60} 分`;
-        totalStonesSpan.textContent = `${totalStones}`;
-
-        // 科目別統計
         subjectStatsList.innerHTML = "";
-        const sortedSubjects = Object.keys(subjectDurations).sort((a, b) => subjectDurations[b] - subjectDurations[a]);
-        sortedSubjects.forEach(subject => {
-            const li = document.createElement("li");
-            li.textContent = `${subject}: ${subjectDurations[subject]} 分`;
-            subjectStatsList.appendChild(li);
-        });
-
-        // グラフの更新
-        updateCharts(subjectDurations, dailyDurations);
-
-        if (studySessions.length === 0) {
+        if (Object.keys(subjectDurations).length === 0) {
             noStatsMessage.style.display = "block";
         } else {
             noStatsMessage.style.display = "none";
+            for (const subject in subjectDurations) {
+                const li = document.createElement("li");
+                const subjectHours = Math.floor(subjectDurations[subject] / 60);
+                const subjectMinutes = subjectDurations[subject] % 60;
+                li.textContent = `${subject}: ${subjectHours} 時間 ${subjectMinutes} 分`;
+                subjectStatsList.appendChild(li);
+            }
         }
-    }
 
-    function updateCharts(subjectDurations, dailyDurations) {
+        // 科目別勉強時間グラフ
         const subjectCtx = document.getElementById('subjectChart').getContext('2d');
-        const dailyCtx = document.getElementById('dailyChart').getContext('2d');
-
-        // 科目別円グラフ
         if (subjectChartInstance) {
             subjectChartInstance.destroy();
         }
-        const subjectLabels = Object.keys(subjectDurations);
-        const subjectData = Object.values(subjectDurations);
-        const subjectBackgroundColors = subjectLabels.map(subject => subjectColors[subject] || '#CCCCCC'); // デフォルト色
-
         subjectChartInstance = new Chart(subjectCtx, {
             type: 'pie',
             data: {
-                labels: subjectLabels,
+                labels: Object.keys(subjectDurations),
                 datasets: [{
-                    data: subjectData,
-                    backgroundColor: subjectBackgroundColors,
+                    label: '科目別勉強時間 (分)',
+                    data: Object.values(subjectDurations),
+                    backgroundColor: Object.keys(subjectDurations).map(subject => subjectColors[subject] || getRandomColor(subject)),
+                    borderColor: '#fff',
+                    borderWidth: 1
                 }]
             },
             options: {
                 responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    },
-                    title: {
-                        display: true,
-                        text: '科目別勉強時間',
-                        color: '#FFFFFF' // タイトル色を白に設定
-                    }
-                }
-            },
+                maintainAspectRatio: false
+            }
         });
 
-        // 日別棒グラフ
+        // 日別勉強時間グラフ
+        const dailyDurations = {};
+        studySessions.forEach(session => {
+            const date = new Date(session.startTime).toLocaleDateString('ja-JP');
+            if (dailyDurations[date]) {
+                dailyDurations[date] += session.duration;
+            } else {
+                dailyDurations[date] = session.duration;
+            }
+        });
+
+        const dailyCtx = document.getElementById('dailyChart').getContext('2d');
         if (dailyChartInstance) {
             dailyChartInstance.destroy();
         }
-        const sortedDates = Object.keys(dailyDurations).sort((a, b) => new Date(a) - new Date(b));
-        const dailyLabels = sortedDates;
-        const dailyData = sortedDates.map(date => dailyDurations[date]);
-
         dailyChartInstance = new Chart(dailyCtx, {
             type: 'bar',
             data: {
-                labels: dailyLabels,
+                labels: Object.keys(dailyDurations).reverse(),
                 datasets: [{
                     label: '日別勉強時間 (分)',
-                    data: dailyData,
-                    backgroundColor: '#42A5F5',
+                    data: Object.values(dailyDurations).reverse(),
+                    backgroundColor: 'rgba(0, 122, 255, 0.7)',
+                    borderColor: 'rgba(0, 122, 255, 1)',
+                    borderWidth: 1
                 }]
             },
             options: {
                 responsive: true,
-                plugins: {
-                    legend: {
-                        display: false,
-                    },
-                    title: {
-                        display: true,
-                        text: '日別勉強時間',
-                        color: '#FFFFFF' // タイトル色を白に設定
-                    }
-                },
+                maintainAspectRatio: false,
                 scales: {
-                    x: {
-                        stacked: true,
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.2)' // グリッド線色を白に近い色に設定
-                        },
-                        ticks: {
-                            color: '#FFFFFF' // 軸ラベル色を白に設定
-                        }
-                    },
                     y: {
-                        stacked: true,
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.2)' // グリッド線色を白に近い色に設定
-                        },
-                        ticks: {
-                            color: '#FFFFFF' // 軸ラベル色を白に設定
-                        }
+                        beginAtZero: true
                     }
                 }
             }
@@ -524,180 +503,125 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function renderSubjectColorSettings() {
-        colorSettingsDiv.innerHTML = ''; // コンテンツをクリア
+        colorSettingsDiv.innerHTML = "";
+        if (registeredSubjects.length > 0) {
+            registeredSubjects.forEach(subject => {
+                const colorSetting = document.createElement("div");
+                const currentColor = subjectColors[subject] || getRandomColor(subject);
+                colorSetting.innerHTML = `
+                    <label for="color-${subject}">${subject}</label>
+                    <input type="color" id="color-${subject}" value="${currentColor}">
+                `;
+                colorSettingsDiv.appendChild(colorSetting);
 
-        if (registeredSubjects.length === 0) {
-            colorSettingsDiv.innerHTML = '<p class="message-text">科目を登録すると、ここでグラフの色を設定できます。</p>';
-            return;
-        }
-
-        registeredSubjects.forEach(subject => {
-            // subjectColorsに色が設定されていない場合、ランダムな色を設定
-            if (!subjectColors[subject]) {
-                subjectColors[subject] = '#' + Math.floor(Math.random()*16777215).toString(16);
-            }
-
-            const div = document.createElement("div");
-            div.classList.add("color-setting-item");
-            div.innerHTML = `
-                <label for="color-${subject}">${subject}:</label>
-                <input type="color" id="color-${subject}" value="${subjectColors[subject]}">
-            `;
-            colorSettingsDiv.appendChild(div);
-
-            const colorInput = div.querySelector(`#color-${subject}`);
-            colorInput.addEventListener('change', (event) => {
-                subjectColors[subject] = event.target.value;
-                saveData();
-                renderStats(); // 色変更をグラフに反映
+                document.getElementById(`color-${subject}`).addEventListener("input", (event) => {
+                    subjectColors[subject] = event.target.value;
+                    saveData();
+                    renderStats(); // 色が変更されたら統計グラフを再描画
+                });
             });
-        });
-    }
-
-    // ガチャ関連関数
-    gacha1PullBtn.addEventListener("click", () => pullGacha(1));
-    gacha10PullBtn.addEventListener("click", () => pullGacha(10));
-
-    function pullGacha(pullCount) {
-        const stoneCost = pullCount === 1 ? 160 : 1600;
-        const currentStones = calculateCurrentStones();
-
-        if (currentStones < stoneCost) {
-            alert(`石が足りません。現在${currentStones}個、${pullCount}回引くには${stoneCost}個必要です。`);
-            return;
-        }
-
-        if (!confirm(`${pullCount}回ガチャを引きますか？ (石${stoneCost}個消費)`)) {
-            return;
-        }
-
-        // 石を消費
-        gachaHistory.push({ type: 'stone_spend', amount: stoneCost, timestamp: new Date().toISOString() });
-        updateGachaStoneCount();
-
-        const results = [];
-            let isGuaranteedSRorSSR = false;
-
-        for (let i = 0; i < pullCount; i++) {
-            gachaPullCount++;
-
-            // 確定枠の処理 (星3が9連続で排出された場合)
-            // 10連ガチャの最後の1回が確定枠ではない
-            if (consecutivePullsWithoutSSR >= 9) {
-                isGuaranteedSRorSSR = true;
-            }
-
-            let currentStar5Rate = 0.006; // 基本の星5確率
-            // 天井ロジック: 75連目以降、6%ずつ星5確率が上昇
-            if (consecutivePullsWithoutSSR >= 75) {
-                currentStar5Rate = 0.006 + (consecutivePullsWithoutSSR - 74) * 0.06;
-                if (currentStar5Rate > 1) currentStar5Rate = 1; // 100%を超えないように
-            }
-
-            const item = drawGachaItem(isGuaranteedSRorSSR, currentStar5Rate);
-            results.push(item);
-
-            // 星4または星5が出たら連続星3カウントをリセット
-            if (item.rarity >= 4) {
-                consecutivePullsWithoutSSR = 0;
-            } else { // 星3が出たらカウントアップ
-                consecutivePullsWithoutSSR++;
-            }
-            
-            // 獲得したキャラクターを保存
-            if (item.type === 'character') {
-                acquiredCharacters.push(item);
-            }
-            gachaHistory.push({ type: 'gacha_pull', item: item, timestamp: new Date().toISOString(), pullNumber: gachaPullCount });
-            // ガチャ履歴を保存した後に表示を更新
-            renderGachaHistory();
-        }
-
-        saveData();
-        displayGachaResults(results);
-        renderCharacters(); // キャラリストを更新
-        updateGachaStoneCount(); // 石の数を更新
-    }
-
-    function drawGachaItem(isGuaranteedSRorSSR = false, currentStar5Rate = 0.006) {
-        let star5Rate = currentStar5Rate; // 天井による変動を考慮
-        let star4Rate = 0.06; // 基本の星4確率
-        let star3Rate = 1 - star5Rate - star4Rate;
-
-        // 9連続星3排出後の確定枠の確率調整
-        if (isGuaranteedSRorSSR) {
-            const rand = Math.random();
-            if (rand < 0.006) { // 0.6%で星5
-                return getRandomItem("star5");
-            } else { // 99.4%で星4
-                return getRandomItem("star4");
-            }
-        }
-
-        // 通常の確率計算
-        const rand = Math.random();
-        if (rand < star5Rate) {
-            return getRandomItem("star5");
-        } else if (rand < star5Rate + star4Rate) {
-            return getRandomItem("star4");
-        } else {
-            return getRandomItem("star3");
-        }
-
-        const rand = Math.random();
-        if (rand < star5Rate) {
-            return getRandomItem("star5");
-        } else if (rand < star5Rate + star4Rate) {
-            return getRandomItem("star4");
-        } else {
-            return getRandomItem("star3");
         }
     }
 
-    function displayGachaResults(results) {
-        gachaResultsDiv.innerHTML = ""; // Clear previous results
-        results.forEach((item, index) => {
-            const p = document.createElement("p");
-            p.textContent = `${index + 1}連目: ${"☆".repeat(item.rarity)}${item.name}`;
-            gachaResultsDiv.appendChild(p);
-        });
-        renderGachaHistory(); // ガチャ履歴を更新
+    function getRandomColor(seed) {
+        let hash = 0;
+        for (let i = 0; i < seed.length; i++) {
+            hash = seed.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        let color = '#';
+        for (let i = 0; i < 3; i++) {
+            let value = (hash >> (i * 8)) & 0xFF;
+            color += ('00' + value.toString(16)).substr(-2);
+        }
+        return color;
     }
 
-    function getRandomItem(rarity) {
-        const items = gachaItems[rarity];
-        return items[Math.floor(Math.random() * items.length)];
-    }
-
-    function calculateCurrentStones() {
-        let totalEarned = 0;
-        let totalSpent = 0;
-
-        gachaHistory.forEach(entry => {
-            if (entry.type === 'stone_gain') {
-                totalEarned += entry.amount;
-            } else if (entry.type === 'stone_spend') {
-                totalSpent += entry.amount;
-            }
-        });
-        return totalEarned - totalSpent;
-    }
+    // ガチャ関連の関数
 
     function updateGachaStoneCount() {
-        currentStonesSpan.textContent = calculateCurrentStones();
-        saveData(); // 石の数を更新したら保存
+        const totalStones = studySessions.reduce((total, session) => total + session.stones, 0);
+        const spentStones = gachaHistory.filter(entry => entry.type === 'gacha_pull').reduce((total, entry) => total + entry.cost, 0);
+        const currentStones = totalStones - spentStones;
+        currentStonesSpan.textContent = currentStones;
     }
 
-    function renderGachaHistory() {
-        gachaHistoryDiv.innerHTML = ""; // Clear previous history
-        // 最新の履歴から表示
-        const reversedHistory = [...gachaHistory].reverse();
-        reversedHistory.forEach(entry => {
-            if (entry.type === 'gacha_pull') {
-                const p = document.createElement("p");
-                p.textContent = `${entry.pullNumber}連目: ${"☆".repeat(entry.item.rarity)}${entry.item.name} (${new Date(entry.timestamp).toLocaleString()})`;
-                gachaHistoryDiv.appendChild(p);
+    function performGacha(pulls) {
+        console.log(`performGacha called with ${pulls} pulls.`);
+        const cost = pulls * 160;
+        const totalStones = studySessions.reduce((total, session) => total + session.stones, 0);
+        const spentStones = gachaHistory.filter(entry => entry.type === 'gacha_pull').reduce((total, entry) => total + entry.cost, 0);
+        const currentStones = totalStones - spentStones;
+
+        if (currentStones < cost) {
+            alert("石が足りません。");
+            return;
+        }
+
+        let results = [];
+        let guaranteedSR = false;
+
+        for (let i = 0; i < pulls; i++) {
+            gachaPullCount++;
+            let item;
+
+            // 確定枠のチェック (星3が9連続)
+            if (consecutivePullsWithoutSSR >= 9) {
+                guaranteedSR = true;
             }
+
+            if (guaranteedSR) {
+                const rand = Math.random();
+                if (rand < 0.006) { // 星5
+                    item = gachaItems.star5[Math.floor(Math.random() * gachaItems.star5.length)];
+                } else { // 星4
+                    item = gachaItems.star4[Math.floor(Math.random() * gachaItems.star4.length)];
+                }
+                guaranteedSR = false; // 確定枠消費
+                consecutivePullsWithoutSSR = 0;
+            } else {
+                // 天井システムのチェック
+                let ssrRate = 0.006;
+                if (gachaPullCount >= 75) {
+                    ssrRate += (gachaPullCount - 74) * 0.06;
+                }
+
+                const rand = Math.random();
+                if (rand < ssrRate) { // 星5
+                    item = gachaItems.star5[Math.floor(Math.random() * gachaItems.star5.length)];
+                    gachaPullCount = 0; // 天井リセット
+                    consecutivePullsWithoutSSR = 0;
+                } else if (rand < 0.06) { // 星4
+                    item = gachaItems.star4[Math.floor(Math.random() * gachaItems.star4.length)];
+                    consecutivePullsWithoutSSR = 0;
+                } else { // 星3
+                    item = gachaItems.star3[Math.floor(Math.random() * gachaItems.star3.length)];
+                    consecutivePullsWithoutSSR++;
+                }
+            }
+            results.push(item);
+            acquiredCharacters.push(item);
+        }
+
+        gachaHistory.push({ type: 'gacha_pull', items: results, cost: cost, timestamp: new Date().toISOString() });
+        saveData();
+
+        renderGachaResults(results);
+        updateGachaStoneCount();
+        renderCharacters();
+    }
+
+    function renderGachaResults(results) {
+        console.log("renderGachaResults called with:", results);
+        gachaResultsDiv.innerHTML = "<h3>ガチャ結果</h3>";
+        results.forEach((item, index) => {
+            const p = document.createElement("p");
+            let stars = "";
+            for (let i = 0; i < item.rarity; i++) {
+                stars += "☆";
+            }
+            p.textContent = `${index + 1}連目: ${stars}${item.name}`;
+
+            gachaResultsDiv.appendChild(p);
         });
     }
 
@@ -707,24 +631,36 @@ document.addEventListener("DOMContentLoaded", () => {
             noCharactersMessage.style.display = "block";
         } else {
             noCharactersMessage.style.display = "none";
-            // レア度順、名前順でソート
-            const sortedCharacters = [...acquiredCharacters].sort((a, b) => {
-                if (a.rarity !== b.rarity) {
-                    return b.rarity - a.rarity; // レア度降順
+            const characterGroups = {};
+            acquiredCharacters.forEach(char => {
+                if (characterGroups[char.name]) {
+                    characterGroups[char.name].count++;
+                } else {
+                    characterGroups[char.name] = { ...char, count: 1 };
                 }
-                return a.name.localeCompare(b.name); // 名前昇順
+            });
+
+            const sortedCharacters = Object.values(characterGroups).sort((a, b) => {
+                if (a.rarity !== b.rarity) {
+                    return b.rarity - a.rarity;
+                }
+                return a.name.localeCompare(b.name);
             });
 
             sortedCharacters.forEach(char => {
-                const charDiv = document.createElement("div");
-                charDiv.classList.add("character-item");
-                charDiv.innerHTML = `
-                    <span class="character-rarity">${"☆".repeat(char.rarity)}</span>
-                    <span class="character-name">${char.name}</span>
-                `;
-                characterListDiv.appendChild(charDiv);
+                const li = document.createElement("li");
+                let stars = "";
+                for (let i = 0; i < char.rarity; i++) {
+                    stars += "☆";
+                }
+                li.textContent = `${stars} ${char.name} (x${char.count})`;
+                characterListDiv.appendChild(li);
             });
         }
     }
+
+    gacha1PullBtn.addEventListener("click", () => performGacha(1));
+    gacha10PullBtn.addEventListener("click", () => performGacha(10));
+
 });
 
