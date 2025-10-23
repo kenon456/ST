@@ -108,24 +108,12 @@ document.addEventListener("DOMContentLoaded", () => {
     // 科目選択が変更されたとき
 
 
-    recordTabBtn.addEventListener("click", () => {
-        switchTab("record");
-    });
-
-    statsTabBtn.addEventListener("click", () => {
-        switchTab("stats");
-    });
-
-    settingsTabBtn.addEventListener("click", () => {
-        switchTab("settings");
-    });
-
-    gachaTabBtn.addEventListener("click", () => {
-        switchTab("gacha");
-    });
-
-    charactersTabBtn.addEventListener("click", () => {
-        switchTab("characters");
+    // タブボタンにイベントリスナーを追加
+    document.querySelectorAll(".tab-selector button").forEach(button => {
+        button.addEventListener("click", () => {
+            const tabId = button.id.replace("-tab", "");
+            switchTab(tabId);
+        });
     });
 
     // 関数定義
@@ -150,6 +138,9 @@ document.addEventListener("DOMContentLoaded", () => {
             updateGachaStoneCount();
         } else if (tab === "characters") {
             renderCharacters();
+        } else if (tab === "record") {
+            renderSessions();
+            renderSubjects();
         }
     }
 
